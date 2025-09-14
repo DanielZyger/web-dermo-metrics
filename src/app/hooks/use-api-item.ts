@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -9,7 +9,7 @@ interface ApiItemResponse<T> {
   refetch: () => Promise<void>;
 }
 
-export const useApiItem = <T,>(endpoint: string): ApiItemResponse<T> => {
+export const useApiItem = <T>(endpoint: string): ApiItemResponse<T> => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,9 +20,9 @@ export const useApiItem = <T,>(endpoint: string): ApiItemResponse<T> => {
 
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -33,7 +33,8 @@ export const useApiItem = <T,>(endpoint: string): ApiItemResponse<T> => {
       const result = await response.json();
       setData(result);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro desconhecido";
       setError(errorMessage);
       console.error(`Erro ao buscar item de ${endpoint}:`, err);
       setData(null);
@@ -46,10 +47,10 @@ export const useApiItem = <T,>(endpoint: string): ApiItemResponse<T> => {
     fetchData();
   }, [fetchData]);
 
-  return { 
-    data, 
-    loading, 
-    error, 
-    refetch: fetchData 
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchData,
   };
 };

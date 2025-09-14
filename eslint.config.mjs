@@ -11,11 +11,22 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.config({
-    extends: ['"next/core-web-vitals", "next/typescript"'],
+    extends: [
+      "next/core-web-vitals",
+      "next/typescript",
+      "plugin:prettier/recommended", // 🔥 integra prettier
+    ],
     rules: {
-    "@typescript-eslint/no-explicit-any": "off"
+      indent: "off",
+
+      "object-curly-spacing": ["error", "always"],
+      "array-bracket-spacing": ["error", "never"],
+      "space-before-blocks": ["error", "always"],
+      "keyword-spacing": ["error", { before: true, after: true }],
+      "comma-spacing": ["error", { before: false, after: true }],
+      "semi-spacing": ["error", { before: false, after: true }],
     },
   }),
-]
+];
 
 export default eslintConfig;

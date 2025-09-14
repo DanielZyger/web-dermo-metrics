@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -9,7 +9,7 @@ interface ApiResponse<T> {
   refetch: () => Promise<void>;
 }
 
-export const useApi = <T,>(endpoint: string): ApiResponse<T> => {
+export const useApi = <T>(endpoint: string): ApiResponse<T> => {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,9 +20,9 @@ export const useApi = <T,>(endpoint: string): ApiResponse<T> => {
 
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -33,7 +33,8 @@ export const useApi = <T,>(endpoint: string): ApiResponse<T> => {
       const result = await response.json();
       setData(result);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro desconhecido";
       setError(errorMessage);
       console.error(`Erro ao buscar dados de ${endpoint}:`, err);
     } finally {
@@ -45,10 +46,10 @@ export const useApi = <T,>(endpoint: string): ApiResponse<T> => {
     fetchData();
   }, [fetchData]);
 
-  return { 
-    data, 
-    loading, 
-    error, 
-    refetch: fetchData 
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchData,
   };
 };

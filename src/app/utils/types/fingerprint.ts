@@ -1,9 +1,17 @@
-import { FingerEnum, HandEnum } from "../constants";
+import { FingerKey, HandEnum } from "../constants";
 
 export type FingerprintCreatePayload = {
   volunteer_id: number;
   hand: HandEnum;
-  finger: FingerEnum;
+  finger: FingerKey;
   notes?: string | null;
   image_data: File;
-}
+};
+
+type Hand = Record<FingerKey, File | null>;
+
+export type FormDataFingerprint = {
+  notes: string;
+  leftHand: Hand;
+  rightHand: Hand;
+};

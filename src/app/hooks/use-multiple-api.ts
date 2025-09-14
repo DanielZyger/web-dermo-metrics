@@ -11,35 +11,41 @@ export const useMultipleApi = () => {
     setErrors({});
 
     try {
-      const promises = endpoints.map(endpoint => 
+      const promises = endpoints.map((endpoint) =>
         fetch(`${API_BASE_URL}${endpoint}`, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }).then(async response => {
-          if (!response.ok) {
-            throw new Error(`Erro ${response.status}: ${response.statusText}`);
-          }
-          return {
+        })
+          .then(async (response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Erro ${response.status}: ${response.statusText}`,
+              );
+            }
+            return {
+              endpoint,
+              data: await response.json(),
+            };
+          })
+          .catch((error) => ({
             endpoint,
-            data: await response.json()
-          };
-        }).catch(error => ({
-          endpoint,
-          error: error.message
-        }))
+            error: error.message,
+          })),
       );
 
       const results = await Promise.allSettled(promises);
-      
+
+      // TODO ajustar esse any aqui
       const successResults: Record<string, any[]> = {};
       const errorResults: Record<string, string> = {};
 
       results.forEach((result, index) => {
         const endpoint = endpoints[index];
-        
-        if (result.status === 'fulfilled') {
+
+        if (result.status === "fulfilled") {
+          // TODO ajustar esse any aqui
           const value = result.value as any;
           if (value.error) {
             errorResults[endpoint] = value.error;
@@ -47,14 +53,15 @@ export const useMultipleApi = () => {
             successResults[endpoint] = value.data;
           }
         } else {
-          errorResults[endpoint] = result.reason?.message || 'Erro desconhecido';
+          errorResults[endpoint] =
+            result.reason?.message || "Erro desconhecido";
         }
       });
 
       setErrors(errorResults);
       return successResults;
     } catch (err) {
-      console.error('Erro geral ao buscar dados:', err);
+      console.error("Erro geral ao buscar dados:", err);
       throw err;
     } finally {
       setLoading(false);
