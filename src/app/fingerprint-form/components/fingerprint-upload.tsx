@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useRef, RefObject, Dispatch, SetStateAction } from "react";
+import {
+  useState,
+  useRef,
+  RefObject,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+} from "react";
 import { FileUpload } from "primereact/fileupload";
 import { FingerKey, fingerParse, HandKey } from "@/app/utils/constants";
 import Image from "next/image";
@@ -27,7 +34,7 @@ const FingerprintUpload = ({
       reader.onload = (event) => {
         if (!event.target || !event.target.result) return;
         // TODO AJUSTAR ESSE ERRO AQUI
-        setImagePreview(event.target.result);
+        setImagePreview(event.target?.result);
       };
       reader.readAsDataURL(file);
 
@@ -35,7 +42,14 @@ const FingerprintUpload = ({
         ...prev,
         [hand]: {
           ...prev[hand],
-          [finger]: file,
+          [finger]: {
+            ...(prev[hand][finger] || {
+              image_data: null,
+              image_filtered: null,
+              file: null,
+            }),
+            file: file,
+          },
         },
       }));
 
@@ -47,12 +61,16 @@ const FingerprintUpload = ({
     }
   };
 
+  useEffect(() => {
+    console.log("imagePreview", imagePreview);
+  }, [imagePreview]);
+
   const removeImage = () => {
     setFormData((prev) => ({
       ...prev,
       [hand]: {
         ...prev[hand],
-        [finger]: null,
+        [finger]: { image_data: null, image_filtered: null, file: null },
       },
     }));
     setImagePreview(null);
@@ -88,7 +106,7 @@ const FingerprintUpload = ({
       </label>
 
       <div style={{ position: "relative" }}>
-        {!fingerData ? (
+        {!fingerData?.file ? (
           <div className="file-upload" onClick={triggerFileSelect}>
             <i
               className="pi pi-plus"
@@ -126,6 +144,8 @@ const FingerprintUpload = ({
               <Image
                 src={imagePreview}
                 alt={`Digital ${fingerParse[finger]}`}
+                width={300}
+                height={300}
                 style={{
                   width: "100%",
                   height: "100%",

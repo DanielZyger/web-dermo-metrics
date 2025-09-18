@@ -63,7 +63,7 @@ a {
 
 .file-upload {
   width: 100%;
-  height: 120px;
+  height: 150px;
   border: 2px dashed #cbd5e1;
   border-radius: 12px;
   display: flex;
@@ -77,6 +77,53 @@ a {
   overflow: hidden
 }
 
+.button-create-project {
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.125rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: none;
+  transform: translateY(0);
+}
+
+.button-create-project:hover {
+  background: linear-gradient(to right, #2563eb, #3730a3);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px)
+}
+
+.sidebar-project-list {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.sidebar-project-list:hover {
+  background-color: rgba(255,255,255,0.1);
+  transform: translateY(-1px);
+}
+
+.projects-collapse {
+  width: 100%;
+  color: white;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: rgba(255,255,255,0.05);
+}
+
+.projects-collapse:hover {
+  background-color: rgba(255,255,255,0.1)
+}
 
 .file-upload:hover {
   border-color:  #3b82f6;

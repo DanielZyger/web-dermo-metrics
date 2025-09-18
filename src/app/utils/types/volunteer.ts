@@ -1,4 +1,6 @@
-type Volunteer = {
+import { Fingerprint } from "./fingerprint";
+
+export type Volunteer = {
   id: number;
   name: string;
   age: number;
@@ -7,12 +9,5 @@ type Volunteer = {
   description?: string;
   created_at: string;
   updated_at: string;
-};
-
-type Project = {
-  id: number;
-  name: string;
-  description?: string;
-  created_at: string;
-  updated_at: string;
+  fingerprints: Fingerprint[];
 };

@@ -3,19 +3,30 @@
 import { Card } from "primereact/card";
 import FingerprintUpload from "./fingerprint-upload";
 import { FingerKey, fingerParse } from "@/app/utils/constants";
-import { Dispatch, RefObject, SetStateAction } from "react";
+import { Dispatch, RefObject, SetStateAction, useState } from "react";
 import { Toast } from "primereact/toast";
 import { FormDataFingerprint } from "@/app/utils/types/fingerprint";
+import FingerprintDisplay from "./fingerprint-display";
 
 // TODO ajustar esse type aqui
 const fingers: FingerKey[] = Object.keys(fingerParse);
 
 const FingerprintSession = ({
-  volunteer,
   formData,
   setFormData,
   toast,
 }: FingerprintSessionParams) => {
+  const [viewMode, setViewMode] = useState<"raw" | "filtered">("raw");
+
+  const hasFingerprint = (
+    hand: "leftHand" | "rightHand",
+    finger: FingerKey,
+  ) => {
+    const fingerData = formData[hand]?.[finger];
+    return !!(fingerData?.image_data || fingerData?.image_filtered);
+  };
+
+  console.log("form", formData);
   return (
     <Card
       title="Cadastro de Digitais"
@@ -26,7 +37,36 @@ const FingerprintSession = ({
         border: "1px solid #e5e7eb",
       }}
     >
-      {/* Mão Esquerda */}
+      {/* 🔘 Radio para alternar visualização */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "16px",
+          marginBottom: "20px",
+        }}
+      >
+        <label>
+          <input
+            type="radio"
+            name="viewMode"
+            value="raw"
+            checked={viewMode === "raw"}
+            onChange={() => setViewMode("raw")}
+          />{" "}
+          Original
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="viewMode"
+            value="filtered"
+            checked={viewMode === "filtered"}
+            onChange={() => setViewMode("filtered")}
+          />{" "}
+          Filtrada
+        </label>
+      </div>
       <div style={{ marginBottom: "40px" }}>
         <h4
           style={{
@@ -51,13 +91,24 @@ const FingerprintSession = ({
         >
           {fingers.map((finger) => (
             <div key={`left-${finger}`} style={{ flex: 1 }}>
-              <FingerprintUpload
-                hand="leftHand"
-                finger={finger}
-                formData={formData}
-                setFormData={setFormData}
-                toast={toast}
-              />
+              {hasFingerprint("leftHand", finger) ? (
+                <FingerprintDisplay
+                  hand="leftHand"
+                  finger={finger}
+                  formData={formData}
+                  setFormData={setFormData}
+                  toast={toast}
+                  viewMode={viewMode}
+                />
+              ) : (
+                <FingerprintUpload
+                  hand="leftHand"
+                  finger={finger}
+                  formData={formData}
+                  setFormData={setFormData}
+                  toast={toast}
+                />
+              )}
             </div>
           ))}
         </div>
@@ -88,13 +139,24 @@ const FingerprintSession = ({
         >
           {fingers.map((finger) => (
             <div key={`right-${finger}`} style={{ flex: 1 }}>
-              <FingerprintUpload
-                hand="rightHand"
-                finger={finger}
-                formData={formData}
-                setFormData={setFormData}
-                toast={toast}
-              />
+              {hasFingerprint("rightHand", finger) ? (
+                <FingerprintDisplay
+                  hand="rightHand"
+                  finger={finger}
+                  formData={formData}
+                  setFormData={setFormData}
+                  toast={toast}
+                  viewMode={viewMode}
+                />
+              ) : (
+                <FingerprintUpload
+                  hand="rightHand"
+                  finger={finger}
+                  formData={formData}
+                  setFormData={setFormData}
+                  toast={toast}
+                />
+              )}
             </div>
           ))}
         </div>
@@ -106,7 +168,6 @@ const FingerprintSession = ({
 export default FingerprintSession;
 
 type FingerprintSessionParams = {
-  volunteer: Volunteer | null;
   formData: FormDataFingerprint;
   setFormData: Dispatch<SetStateAction<FormDataFingerprint>>;
   toast: RefObject<Toast | null>;

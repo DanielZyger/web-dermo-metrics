@@ -1,12 +1,42 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import {
+  useState,
+  useMemo,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useCallback,
+} from "react";
 import { Button } from "primereact/button";
 import { Tooltip } from "primereact/tooltip";
+import { useApiItem } from "../hooks/use-api-item";
+import { User } from "../utils/types/user";
+import { Project } from "../utils/types/project";
+import { useSearchParams } from "next/navigation";
 
-export default function Sidebar({ canCollapse = false }) {
+export default function Sidebar({
+  selectedProject,
+  setSelectedProject,
+  showProject = true,
+  canCollapse = false,
+}: SidebarParams) {
+  const searchParams = useSearchParams();
+  const user_id = searchParams.get("user_id");
+
+  const { data: user } = useApiItem<User>(`/users/${user_id}`);
+
+  const projects = useMemo(() => {
+    if (!user) return;
+    return user.projects;
+  }, [user]);
+
   const [isCollapsed, setIsCollapsed] = useState(canCollapse);
+  const [isProjectsExpanded, setIsProjectsExpanded] = useState(false);
+
+  const toggleProjects = () => {
+    setIsProjectsExpanded(!isProjectsExpanded);
+  };
 
   const handleToggle = () => {
     if (!canCollapse) return;
@@ -14,19 +44,30 @@ export default function Sidebar({ canCollapse = false }) {
     setIsCollapsed(newState);
   };
 
-  const menuItems = [
-    { label: "Projetos", icon: "pi pi-folder", href: "/" },
-    { label: "Configurações", icon: "pi pi-cog", href: "/settings" },
-  ];
+  const handleProjectSelect = useCallback(
+    (project: Project) => {
+      if (setSelectedProject) {
+        setSelectedProject(project);
+      }
+    },
+    [setSelectedProject],
+  );
+
+  useEffect(() => {
+    if (projects?.length === 1) {
+      handleProjectSelect(projects[0]);
+    }
+  }, [handleProjectSelect, projects]);
 
   return (
     <>
-      {/* Tooltip para itens colapsados */}
-      {isCollapsed && <Tooltip target=".sidebar-menu-item" />}
+      {isCollapsed && (
+        <Tooltip target=".sidebar-menu-item, .user-info, .project-dropdown" />
+      )}
 
       <aside
         style={{
-          width: isCollapsed ? "80px" : "240px",
+          width: isCollapsed ? "100px" : "300px",
           backgroundColor: "#1E3A8A",
           padding: isCollapsed ? "20px 10px" : "30px",
           boxShadow: "2px 0 6px rgba(0,0,0,0.08)",
@@ -42,7 +83,7 @@ export default function Sidebar({ canCollapse = false }) {
             display: "flex",
             alignItems: "center",
             justifyContent: isCollapsed ? "center" : "space-between",
-            marginBottom: "40px",
+            marginBottom: "30px",
           }}
         >
           <h1
@@ -77,42 +118,133 @@ export default function Sidebar({ canCollapse = false }) {
           )}
         </div>
 
-        {/* Menu de navegação */}
-        <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {menuItems.map((item, index) => (
-            <Link
-              key={index}
-              href={item.href}
-              style={{ textDecoration: "none" }}
-            >
-              <Button
-                icon={item.icon}
-                label={!isCollapsed ? item.label : undefined}
-                text
-                className="sidebar-menu-item"
+        {/* Dados do usuário */}
+        <div
+          className="user-info"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: isCollapsed ? "0" : "12px",
+            marginBottom: "30px",
+            padding: isCollapsed ? "8px" : "12px",
+            backgroundColor: "rgba(255,255,255,0.1)",
+            borderRadius: "8px",
+            justifyContent: isCollapsed ? "center" : "flex-start",
+          }}
+        >
+          {!isCollapsed && user && (
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
                 style={{
-                  width: "100%",
-                  justifyContent: isCollapsed ? "center" : "flex-start",
                   color: "white",
-                  padding: isCollapsed ? "12px 8px" : "12px 16px",
-                  borderRadius: "8px",
-                  transition: "all 0.2s ease",
                   fontSize: "14px",
                   fontWeight: "600",
-                  gap: "12px",
+                  marginBottom: "2px",
+                  padding: 5,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
-                tooltip={isCollapsed ? item.label : undefined}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "rgba(255,255,255,0.1)";
+              >
+                {user.name}
+              </div>
+              <div
+                style={{
+                  color: "rgba(255,255,255,0.7)",
+                  fontSize: "12px",
+                  padding: 5,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = "transparent";
+              >
+                {user.email}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {showProject && (
+          <div style={{ marginBottom: "20px" }}>
+            <Button
+              className="project-dropdown projects-collapse"
+              icon="pi pi-folder"
+              label={!isCollapsed ? "Projetos" : undefined}
+              text
+              style={{
+                justifyContent: isCollapsed ? "center" : "space-between",
+                padding: isCollapsed ? "12px 8px" : "12px 16px",
+              }}
+              tooltip={isCollapsed ? "Projetos" : undefined}
+              tooltipOptions={{ position: "right" }}
+              onClick={toggleProjects}
+            >
+              {!isCollapsed && (
+                <i
+                  className={`pi pi-chevron-${isProjectsExpanded ? "up" : "down"}`}
+                  style={{
+                    fontSize: "12px",
+                    marginLeft: "8px",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              )}
+            </Button>
+
+            {/* Lista de projetos colapsável */}
+            <div
+              style={{
+                overflow: "hidden",
+                transition:
+                  "max-height 0.3s ease-in-out, opacity 0.3s ease-in-out",
+                maxHeight: isProjectsExpanded && !isCollapsed ? "300px" : "0px",
+                opacity: isProjectsExpanded && !isCollapsed ? 1 : 0,
+              }}
+            >
+              <div
+                style={{
+                  paddingLeft: "16px",
+                  marginTop: "8px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
                 }}
-              />
-            </Link>
-          ))}
-        </nav>
+              >
+                {projects?.map((project, index) => (
+                  <Button
+                    key={index}
+                    icon="pi pi-folder"
+                    label={project.name}
+                    text
+                    size="small"
+                    className="sidebar-project-list"
+                    style={{
+                      color:
+                        selectedProject?.id === project.id
+                          ? "#60A5FA"
+                          : "rgba(255,255,255,0.8)",
+                      fontWeight:
+                        selectedProject?.id === project.id ? "600" : "400",
+                      backgroundColor:
+                        selectedProject?.id === project.id
+                          ? "rgba(96,165,250,0.1)"
+                          : "transparent",
+                    }}
+                    onClick={() => handleProjectSelect(project)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </aside>
     </>
   );
 }
+
+type SidebarParams = {
+  showProject?: boolean;
+  selectedProject?: Project | undefined;
+  setSelectedProject?: Dispatch<SetStateAction<Project | undefined>>;
+  canCollapse?: boolean;
+};

@@ -13,6 +13,12 @@ export const fingerParse = {
   pinky: "Mínimo",
 };
 
+export enum UserRoles {
+  ADMIN = "admin",
+  RESEARCHER = "researcher",
+  VIEWER = "viewer",
+}
+
 export enum HandEnum {
   LEFT = "left",
   RIGHT = "right",

@@ -16,8 +16,10 @@ import {
   FingerprintCreatePayload,
   FormDataFingerprint,
 } from "../utils/types/fingerprint";
+import { Volunteer } from "../utils/types/volunteer";
 import { useSearchParams } from "next/navigation";
 import { useApiItem } from "../hooks/use-api-item";
+import base64ToFile from "../utils/base64_to_file";
 
 export default function FingerprintForm() {
   const searchParams = useSearchParams();
@@ -31,23 +33,46 @@ export default function FingerprintForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fingerKeys: FingerKey[] = ["thumb", "index", "middle", "ring", "pinky"];
 
-  const [formData, setFormData] = useState<FormDataFingerprint>({
+  const emptyFormData: FormDataFingerprint = {
     notes: "",
     leftHand: {
-      thumb: null,
-      index: null,
-      middle: null,
-      ring: null,
-      pinky: null,
+      thumb: { image_data: null, image_filtered: null },
+      index: { image_data: null, image_filtered: null },
+      middle: { image_data: null, image_filtered: null },
+      ring: { image_data: null, image_filtered: null },
+      pinky: { image_data: null, image_filtered: null },
     },
     rightHand: {
-      thumb: null,
-      index: null,
-      middle: null,
-      ring: null,
-      pinky: null,
+      thumb: { image_data: null, image_filtered: null },
+      index: { image_data: null, image_filtered: null },
+      middle: { image_data: null, image_filtered: null },
+      ring: { image_data: null, image_filtered: null },
+      pinky: { image_data: null, image_filtered: null },
     },
-  });
+  };
+
+  const buildFormData = (volunteer: Volunteer | null): FormDataFingerprint => {
+    if (!volunteer || !volunteer.fingerprints.length) return emptyFormData;
+
+    volunteer.fingerprints.forEach((fp) => {
+      const hand = fp.hand === "left" ? "leftHand" : "rightHand";
+      const finger = fp.finger as FingerKey;
+
+      if (!fp.image_data || !fp.image_filtered) return;
+
+      formData[hand][finger] = {
+        image_data: fp.image_data,
+        image_filtered: fp.image_filtered,
+        file: null,
+      };
+    });
+
+    return formData;
+  };
+
+  const [formData, setFormData] = useState<FormDataFingerprint>(() =>
+    buildFormData(volunteer),
+  );
 
   const validateFingerprints = () => {
     const missingFingers: string[] = [];
@@ -69,24 +94,24 @@ export default function FingerprintForm() {
 
     fingerKeys.forEach((finger) => {
       // Registro para mão esquerda
-      if (formData.leftHand[finger]) {
+      if (formData.leftHand[finger]?.file) {
         fingerprintRecords.push({
           volunteer_id: volunteerId,
           hand: HandEnum.LEFT,
           notes: "MAO DIREITA",
           finger: finger,
-          image_data: formData.leftHand[finger],
+          image_data: formData.leftHand[finger].file,
         });
       }
 
       // Registro para mão direita
-      if (formData.rightHand[finger]) {
+      if (formData.rightHand[finger]?.file) {
         fingerprintRecords.push({
           volunteer_id: volunteerId,
           notes: "MAO ESQUERDA",
           hand: HandEnum.RIGHT,
           finger: finger,
-          image_data: formData.rightHand[finger],
+          image_data: formData.rightHand[finger].file,
         });
       }
     });
@@ -180,11 +205,7 @@ export default function FingerprintForm() {
           detail: `Registros registros de digitais salvos com sucesso!`,
           life: 5000,
         });
-
-        // Opcional: Limpar o formulário após o sucesso
-        // setFormData({...estadoInicial});
       } else {
-        // Algumas digitais falharam
         const errorMessage = true
           ? "Falha ao salvar todas as digitais"
           : `Registro digitais salvas, MUITAS falharam`;
@@ -209,7 +230,6 @@ export default function FingerprintForm() {
     }
   };
 
-  // Função para contar quantas digitais foram inseridas
   const getInsertedFingerprintsCount = () => {
     let count = 0;
 
@@ -226,6 +246,12 @@ export default function FingerprintForm() {
       refetch();
     }
   }, [volunteerUpdated, refetch]);
+
+  useEffect(() => {
+    setFormData(buildFormData(volunteer));
+  }, [volunteer]);
+
+  // viewMode: "raw" | "filtered";
 
   const insertedCount = getInsertedFingerprintsCount();
   const isFormComplete = insertedCount === 10;
