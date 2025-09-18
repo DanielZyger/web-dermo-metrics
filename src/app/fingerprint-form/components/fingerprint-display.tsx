@@ -4,6 +4,7 @@ import { FingerKey, fingerParse } from "@/app/utils/constants";
 import { Dispatch, RefObject, SetStateAction } from "react";
 import { Toast } from "primereact/toast";
 import { FormDataFingerprint } from "@/app/utils/types/fingerprint";
+import Image from "next/image";
 
 type FingerprintDisplayProps = {
   hand: "leftHand" | "rightHand";
@@ -75,7 +76,7 @@ const FingerprintDisplay = ({
           textAlign: "center",
         }}
       >
-        {fingerParse[finger]}
+        {fingerName}
       </label>
       <Card
         style={{
@@ -85,111 +86,71 @@ const FingerprintDisplay = ({
           border: "2px solid #10b981",
           borderRadius: "12px",
           overflow: "hidden",
+          padding: "0",
+          position: "relative",
         }}
       >
-        <div
+        <button
+          onClick={handleReplace}
           style={{
+            position: "absolute",
+            top: "8px",
+            right: "8px",
+            fontSize: "12px",
+            padding: "4px",
+            height: "24px",
+            width: "24px",
+            border: "1px solid #6366f1",
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            color: "#6366f1",
+            borderRadius: "50%",
+            cursor: "pointer",
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            height: "100%",
+            justifyContent: "center",
+            zIndex: 10,
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
           }}
         >
-          <div
-            style={{
-              flexDirection: "row",
-              width: "100%",
-              display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "flex-end",
-            }}
-          >
-            <button
-              onClick={handleReplace}
-              style={{
-                fontSize: "10px",
-                padding: "6px 8px",
-                height: "28px",
-                border: "1px solid #6366f1",
-                backgroundColor: "white",
-                color: "#6366f1",
-                borderRadius: "4px",
-                cursor: "pointer",
-                alignItems: "flex-end",
-                justifyContent: "end",
-                gap: "4px",
-              }}
-            >
-              <i className="pi pi-times" />
-            </button>
-          </div>
+          <i className="pi pi-times" style={{ fontSize: "12px" }} />
+        </button>
 
-          {/* Imagem */}
+        {imageToShow ? (
+          <Image
+            src={`data:image/jpeg;base64,${imageToShow}`}
+            height={300}
+            width={300}
+            alt={`${fingerName} - ${viewMode === "raw" ? "Original" : "Filtrada"}`}
+            style={{
+              objectFit: "cover",
+              borderRadius: "12px",
+            }}
+          />
+        ) : (
           <div
             style={{
-              flex: 1,
               width: "100%",
+              height: "100%",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: "8px",
+              color: "#9ca3af",
+              fontSize: "12px",
               backgroundColor: "#f9fafb",
-              borderRadius: "8px",
-              overflow: "hidden",
             }}
           >
-            {imageToShow ? (
-              <img
-                src={`data:image/jpeg;base64,${imageToShow}`}
-                alt={`${fingerName} - ${viewMode === "raw" ? "Original" : "Filtrada"}`}
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                  objectFit: "contain",
-                  borderRadius: "4px",
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "100%",
-                  color: "#9ca3af",
-                  fontSize: "12px",
-                }}
-              >
-                <i
-                  className="pi pi-image"
-                  style={{ fontSize: "24px", marginBottom: "8px" }}
-                />
-                <span>
-                  {viewMode === "raw" ? "Imagem original" : "Imagem filtrada"}
-                  <br />
-                  não disponível
-                </span>
-              </div>
-            )}
+            <i
+              className="pi pi-image"
+              style={{ fontSize: "24px", marginBottom: "8px" }}
+            />
+            <span style={{ textAlign: "center" }}>
+              {viewMode === "raw" ? "Imagem original" : "Imagem filtrada"}
+              <br />
+              não disponível
+            </span>
           </div>
-
-          {/* Status indicator */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              marginBottom: "8px",
-              fontSize: "11px",
-              color: "#10b981",
-              fontWeight: "500",
-            }}
-          >
-            <i className="pi pi-check-circle" />
-            <span>Carregada</span>
-          </div>
-        </div>
+        )}
       </Card>
     </>
   );
