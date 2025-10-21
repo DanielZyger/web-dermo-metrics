@@ -13,6 +13,12 @@ export const fingerParse = {
   pinky: "Mínimo",
 };
 
+export const statusParse = {
+  pending: "Pendente",
+  incompleted: "Incompleto",
+  completed: "Completo",
+};
+
 export enum UserRoles {
   ADMIN = "admin",
   RESEARCHER = "researcher",

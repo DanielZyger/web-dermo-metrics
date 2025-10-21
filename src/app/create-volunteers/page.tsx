@@ -1,5 +1,7 @@
 "use client";
 
+import "./styles.css";
+
 import React, { useState, useRef } from "react";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
@@ -8,12 +10,13 @@ import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Toast } from "primereact/toast";
 import { API_BASE_URL } from "../utils/constants";
-import { useApiItem } from "../hooks/use-api-item";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface VolunteerFormData {
   name: string;
   age: number | null;
+  weight: number | null;
+  height: number | null;
   gender: string;
   phone: string;
   description: string;
@@ -22,6 +25,8 @@ interface VolunteerFormData {
 interface VolunteerFormErrors {
   name?: string;
   age?: string;
+  height?: string;
+  weight?: string;
   gender?: string;
   phone?: string;
   description?: string;
@@ -39,6 +44,8 @@ const VolunteerForm = () => {
     age: null,
     gender: "",
     phone: "",
+    weight: null,
+    height: null,
     description: "",
   });
 
@@ -153,6 +160,8 @@ const VolunteerForm = () => {
       name: "",
       age: null,
       gender: "",
+      weight: null,
+      height: null,
       phone: "",
       description: "",
     });
@@ -160,181 +169,105 @@ const VolunteerForm = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        background:
-          "linear-gradient(to bottom right, #dbeafe, #ffffff, #e0e7ff)",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "30px",
-      }}
-    >
+    <div className="container">
       <Toast ref={toast} />
 
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          flexDirection: "row",
-          maxWidth: "1200px",
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <div
-            style={{
-              backgroundColor: "white",
-              borderRadius: "16px",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-              padding: "40px",
-              border: "1px solid #f3f4f6",
-            }}
-          >
-            <div style={{ textAlign: "center", marginBottom: "32px" }}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginBottom: "24px",
-                }}
-              >
-                <button
-                  onClick={handleGoBack}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    background: "transparent",
-                    border: "none",
-                    color: "black",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    padding: "8px",
-                    borderRadius: "8px",
-                    transition: "all 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "#f3f4f6";
-                    e.target.style.color = "#374151";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = "transparent";
-                    e.target.style.color = "#6b7280";
-                  }}
-                >
-                  <i
-                    className="pi pi-arrow-left"
-                    style={{ fontSize: "14px" }}
-                  />
+      <div className="formWrapper">
+        <div className="formContainer">
+          <div className="card">
+            <div className="header">
+              <div className="backButtonContainer">
+                <button onClick={handleGoBack} className="backButton">
+                  <i className="pi pi-arrow-left backButtonIcon" />
                   Voltar
                 </button>
               </div>
-              <h2
-                style={{
-                  fontSize: "1.5rem",
-                  fontWeight: "bold",
-                  color: "#111827",
-                  marginBottom: "8px",
-                }}
-              >
-                Cadastrar Voluntário
-              </h2>
-              <p style={{ color: "#4b5563" }}>
-                Preencha as informações do voluntário
-              </p>
+              <h2 className="title">Cadastrar Voluntário</h2>
+              <p className="subtitle">Preencha as informações do voluntário</p>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "24px",
-              }}
-            >
-              {/* Nome */}
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.875rem",
-                    fontWeight: "600",
-                    color: "#1f2937",
-                    marginBottom: "12px",
-                  }}
-                >
-                  Nome Completo *
-                </label>
+            <div className="form">
+              <div className="formGroup">
+                <label className="label">Nome Completo *</label>
                 <div style={{ position: "relative" }}>
                   <InputText
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
                     placeholder="Ex: João Silva Santos"
+                    className="input"
+                    style={{
+                      border: `2px solid ${errors.name ? "#ef4444" : "#e5e7eb"}`,
+                    }}
+                  />
+                  <div className="inputIcon">
+                    <i className="pi pi-user" />
+                  </div>
+                </div>
+                {errors.name && <p className="errorMessage">{errors.name}</p>}
+              </div>
+
+              <div className="twoColumns">
+                <div className="formGroup">
+                  <label className="label">Altura</label>
+                  <InputNumber
+                    value={formData.height}
+                    onValueChange={(e) => handleInputChange("height", e.value)}
+                    placeholder="Ex: 176.5 cm"
+                    min={15}
+                    max={250}
+                    minFractionDigits={0}
+                    maxFractionDigits={2}
                     style={{
                       width: "100%",
-                      padding: "16px 48px 16px 16px",
+                    }}
+                    inputStyle={{
+                      padding: "16px",
                       backgroundColor: "#f9fafb",
-                      border: `2px solid ${errors.name ? "#ef4444" : "#e5e7eb"}`,
+                      border: `2px solid ${errors.age ? "#ef4444" : "#e5e7eb"}`,
                       borderRadius: "12px",
                       color: "#111827",
                       fontSize: "16px",
                       outline: "none",
                       transition: "all 0.2s",
-                      boxSizing: "border-box",
                     }}
                   />
-                  <div
-                    style={{
-                      position: "absolute",
-                      right: "16px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
-                    <i
-                      className="pi pi-user"
-                      style={{
-                        fontSize: "16px",
-                        color: "#9ca3af",
-                      }}
-                    />
-                  </div>
+                  {errors.height && (
+                    <p className="errorMessage">{errors.height}</p>
+                  )}
                 </div>
-                {errors.name && (
-                  <p
+                <div className="formGroup">
+                  <label className="label">Peso</label>
+                  <InputNumber
+                    value={formData.weight}
+                    onValueChange={(e) => handleInputChange("weight", e.value)}
+                    placeholder="Ex: 65.3 kg"
+                    min={2}
+                    minFractionDigits={0}
+                    maxFractionDigits={2}
+                    max={200}
                     style={{
-                      fontSize: "0.75rem",
-                      color: "#ef4444",
-                      marginTop: "8px",
+                      width: "100%",
                     }}
-                  >
-                    {errors.name}
-                  </p>
-                )}
+                    inputStyle={{
+                      padding: "16px",
+                      backgroundColor: "#f9fafb",
+                      border: `2px solid ${errors.age ? "#ef4444" : "#e5e7eb"}`,
+                      borderRadius: "12px",
+                      color: "#111827",
+                      fontSize: "16px",
+                      outline: "none",
+                      transition: "all 0.2s",
+                    }}
+                  />
+                  {errors.weight && (
+                    <p className="errorMessage">{errors.weight}</p>
+                  )}
+                </div>
               </div>
 
-              {/* Idade e Telefone */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "16px",
-                }}
-              >
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: "0.875rem",
-                      fontWeight: "600",
-                      color: "#1f2937",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    Idade
-                  </label>
+              <div className="twoColumns">
+                <div className="formGroup">
+                  <label className="label">Idade</label>
                   <InputNumber
                     value={formData.age}
                     onValueChange={(e) => handleInputChange("age", e.value)}
@@ -355,31 +288,11 @@ const VolunteerForm = () => {
                       transition: "all 0.2s",
                     }}
                   />
-                  {errors.age && (
-                    <p
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "#ef4444",
-                        marginTop: "8px",
-                      }}
-                    >
-                      {errors.age}
-                    </p>
-                  )}
+                  {errors.age && <p className="errorMessage">{errors.age}</p>}
                 </div>
 
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: "0.875rem",
-                      fontWeight: "600",
-                      color: "#1f2937",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    Telefone *
-                  </label>
+                <div className="formGroup">
+                  <label className="label">Telefone *</label>
                   <div style={{ position: "relative" }}>
                     <InputText
                       value={formData.phone}
@@ -387,63 +300,23 @@ const VolunteerForm = () => {
                         handleInputChange("phone", e.target.value)
                       }
                       placeholder="(00) 00000-0000"
+                      className="input"
                       style={{
-                        width: "100%",
-                        padding: "16px 48px 16px 16px",
-                        backgroundColor: "#f9fafb",
                         border: `2px solid ${errors.phone ? "#ef4444" : "#e5e7eb"}`,
-                        borderRadius: "12px",
-                        color: "#111827",
-                        fontSize: "16px",
-                        outline: "none",
-                        transition: "all 0.2s",
-                        boxSizing: "border-box",
                       }}
                     />
-                    <div
-                      style={{
-                        position: "absolute",
-                        right: "16px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                      }}
-                    >
-                      <i
-                        className="pi pi-phone"
-                        style={{
-                          fontSize: "16px",
-                          color: "#9ca3af",
-                        }}
-                      />
+                    <div className="inputIcon">
+                      <i className="pi pi-phone" />
                     </div>
                   </div>
                   {errors.phone && (
-                    <p
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "#ef4444",
-                        marginTop: "8px",
-                      }}
-                    >
-                      {errors.phone}
-                    </p>
+                    <p className="errorMessage">{errors.phone}</p>
                   )}
                 </div>
               </div>
 
-              {/* Gênero */}
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.875rem",
-                    fontWeight: "600",
-                    color: "#1f2937",
-                    marginBottom: "12px",
-                  }}
-                >
-                  Gênero *
-                </label>
+                <label className="label">Gênero *</label>
                 <Dropdown
                   value={formData.gender}
                   onChange={(e) => handleInputChange("gender", e.value)}
@@ -462,73 +335,29 @@ const VolunteerForm = () => {
                   }}
                 />
                 {errors.gender && (
-                  <p
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#ef4444",
-                      marginTop: "8px",
-                    }}
-                  >
-                    {errors.gender}
-                  </p>
+                  <p className="errorMessage">{errors.gender}</p>
                 )}
               </div>
 
-              {/* Descrição */}
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.875rem",
-                    fontWeight: "600",
-                    color: "#1f2937",
-                    marginBottom: "12px",
-                  }}
-                >
-                  Descrição / Habilidades *
-                </label>
+                <label className="label">Observações *</label>
                 <InputTextarea
                   value={formData.description}
                   onChange={(e) =>
                     handleInputChange("description", e.target.value)
                   }
-                  placeholder="Descreva as habilidades, experiências e áreas de interesse do voluntário..."
+                  placeholder="Adicione observações sobre o voluntário"
                   rows={4}
+                  className="textarea"
                   style={{
-                    width: "100%",
-                    padding: "16px",
-                    backgroundColor: "#f9fafb",
                     border: `2px solid ${errors.description ? "#ef4444" : "#e5e7eb"}`,
-                    borderRadius: "12px",
-                    color: "#111827",
-                    fontSize: "16px",
-                    outline: "none",
-                    transition: "all 0.2s",
-                    resize: "none",
-                    boxSizing: "border-box",
-                    fontFamily: "inherit",
                   }}
                 />
                 {errors.description && (
-                  <p
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#ef4444",
-                      marginTop: "8px",
-                    }}
-                  >
-                    {errors.description}
-                  </p>
+                  <p className="errorMessage">{errors.description}</p>
                 )}
-                <p
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "#6b7280",
-                    marginTop: "8px",
-                  }}
-                >
-                  Inclua informações sobre habilidades técnicas, experiências
-                  anteriores e áreas de interesse
+                <p className="helpText">
+                  Inclua observações sobre o voluntário
                 </p>
               </div>
 
@@ -539,14 +368,7 @@ const VolunteerForm = () => {
                   severity="secondary"
                   outlined
                   onClick={handleCancel}
-                  style={{
-                    flex: 1,
-                    padding: "16px",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    borderRadius: "12px",
-                    transition: "all 0.2s",
-                  }}
+                  className="cancelButton"
                 />
                 <button
                   onClick={handleSubmit}
@@ -557,51 +379,7 @@ const VolunteerForm = () => {
                     !formData.phone.trim() ||
                     !formData.description.trim()
                   }
-                  style={{
-                    flex: 2,
-                    padding: "16px",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    borderRadius: "12px",
-                    border: "none",
-                    cursor:
-                      loading ||
-                      !formData.name.trim() ||
-                      !formData.gender ||
-                      !formData.phone.trim() ||
-                      !formData.description.trim()
-                        ? "not-allowed"
-                        : "pointer",
-                    background:
-                      loading ||
-                      !formData.name.trim() ||
-                      !formData.gender ||
-                      !formData.phone.trim() ||
-                      !formData.description.trim()
-                        ? "#d1d5db"
-                        : "linear-gradient(to right, #3b82f6, #4f46e5)",
-                    color:
-                      loading ||
-                      !formData.name.trim() ||
-                      !formData.gender ||
-                      !formData.phone.trim() ||
-                      !formData.description.trim()
-                        ? "#6b7280"
-                        : "white",
-                    boxShadow:
-                      loading ||
-                      !formData.name.trim() ||
-                      !formData.gender ||
-                      !formData.phone.trim() ||
-                      !formData.description.trim()
-                        ? "none"
-                        : "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
-                    transition: "all 0.2s",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                  }}
+                  className="submitButton"
                 >
                   {loading && <i className="pi pi-spin pi-spinner" />}
                   {loading ? "Cadastrando..." : "Cadastrar Voluntário"}

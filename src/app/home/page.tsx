@@ -1,24 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { Button } from "primereact/button";
 import { useState } from "react";
 import Sidebar from "../components/sidebar";
-import { genderParse } from "../utils/constants";
 import { useApi } from "../hooks/use-api";
 import { Project } from "../utils/types/project";
 import { useApiItem } from "../hooks/use-api-item";
 import { User } from "../utils/types/user";
 import { useRouter, useSearchParams } from "next/navigation";
-
-const status = "Completo";
-
-const statusStyles: Record<string, { backgroundColor: string; color: string }> =
-  {
-    Completo: { backgroundColor: "#d1fae5", color: "#065f46" },
-    Incompleto: { backgroundColor: "#fee2e2", color: "#991b1b" },
-    Pendente: { backgroundColor: "#fef3c7", color: "#92400e" },
-  };
+import { Volunteer } from "../utils/types/volunteer";
+import VolunteerTable from "../components/volunteer-table";
 
 export default function HomePage() {
   const [selectedProject, setSelectedProject] = useState<Project | undefined>();
@@ -31,7 +22,7 @@ export default function HomePage() {
   const { data: volunteers, loading: loadingVolunteers } =
     useApi<Volunteer>(`/volunteers`);
 
-  if (loadingVolunteers || !user) {
+  if (!user || loadingVolunteers) {
     return (
       <div
         style={{
@@ -40,7 +31,7 @@ export default function HomePage() {
           backgroundColor: "#F3F4F6",
         }}
       >
-        Carregando Dados
+        Selecione um projeto para visualizar os voluntários.
       </div>
     );
   }
@@ -85,7 +76,7 @@ export default function HomePage() {
             size="small"
             onClick={() => {
               router.push(
-                `/create-volunteers?user_id=${user.id}&project_id=${selectedProject?.id}`,
+                `/create-volunteers?user_id=${user?.id}&project_id=${selectedProject?.id}`,
               );
             }}
           />
@@ -100,8 +91,9 @@ export default function HomePage() {
         >
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+              flexDirection: "row",
+              display: "flex",
+              width: "100%",
               padding: "12px 16px",
               borderBottom: "1px solid #e5e7eb",
               backgroundColor: "#1E3A8A",
@@ -110,81 +102,26 @@ export default function HomePage() {
               color: "white",
             }}
           >
-            <div>Voluntário</div>
-            <div>Idade</div>
-            <div>Sexo</div>
-            <div>Status</div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1fr 1fr",
+                width: "90%",
+              }}
+            >
+              <div>Voluntário</div>
+              <div>Idade</div>
+              <div>Altura</div>
+              <div>Peso</div>
+              <div>Sexo</div>
+              <div>Status</div>
+            </div>
             <div style={{ textAlign: "center" }}>Ações</div>
           </div>
 
           {volunteers && volunteers.length > 0 ? (
             volunteers.map((v) => (
-              <Link
-                key={v.id}
-                href={`/fingerprint-form?volunteer_id=${v.id}&user_id=${user.id}`}
-              >
-                <div key={v.id} className="table-row">
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontWeight: "500", color: "#111827" }}>
-                      {v.name}
-                    </span>
-                    <span style={{ fontSize: "12px", color: "#6b7280" }}>
-                      ID: {v.id}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span style={{ fontWeight: "500", color: "#111827" }}>
-                      {v.age}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span style={{ fontWeight: "500", color: "#111827" }}>
-                      {genderParse[v.gender]}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span
-                      style={{
-                        padding: "4px 10px",
-                        borderRadius: "9999px",
-                        fontSize: "12px",
-                        fontWeight: 500,
-                        ...statusStyles[status],
-                      }}
-                    >
-                      {status}
-                    </span>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <Button
-                      icon="pi pi-pencil"
-                      size="small"
-                      severity="secondary"
-                      rounded
-                      outlined
-                      aria-label="Editar"
-                    ></Button>
-                    <Button
-                      icon="pi pi-trash"
-                      size="small"
-                      severity="danger"
-                      rounded
-                      outlined
-                      aria-label="Remover"
-                    ></Button>
-                  </div>
-                </div>
-              </Link>
+              <VolunteerTable key={v.id} user={user} volunteer={v} />
             ))
           ) : (
             <div

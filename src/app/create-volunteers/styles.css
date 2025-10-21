@@ -1,0 +1,204 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(to bottom right, #dbeafe, #ffffff, #e0e7ff);
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+
+.formWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  max-width: 1200px;
+}
+
+.formContainer {
+  flex: 1;
+}
+
+.card {
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 40px;
+  border: 1px solid #f3f4f6;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.backButtonContainer {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.backButton:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.backButtonIcon {
+  font-size: 14px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #4b5563;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formGroup {
+  display: block;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  padding: 16px 48px 16px 16px;
+  background-color: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  color: #111827;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.input.error {
+  border-color: #ef4444;
+}
+
+.inputIcon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #9ca3af;
+}
+
+.errorMessage {
+  font-size: 0.75rem;
+  color: #ef4444;
+  margin-top: 8px;
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.textarea {
+  width: 100%;
+  padding: 16px;
+  background-color: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  color: #111827;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.2s;
+  resize: none;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.textarea.error {
+  border-color: #ef4444;
+}
+
+.helpText {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.submitButton {
+  flex: 2;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(to right, #3b82f6, #4f46e5);
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.submitButton:disabled {
+  cursor: not-allowed;
+  background: #d1d5db;
+  color: #6b7280;
+  box-shadow: none;
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.15);
+}

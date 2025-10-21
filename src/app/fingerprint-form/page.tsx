@@ -249,7 +249,7 @@ export default function FingerprintForm() {
 
   useEffect(() => {
     setFormData(buildFormData(volunteer));
-  }, [volunteer]);
+  }, [volunteer, buildFormData]);
 
   // viewMode: "raw" | "filtered";
 
