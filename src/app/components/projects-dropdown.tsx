@@ -137,7 +137,9 @@ const ProjectsDropdown = ({
               </div>
 
               <OverlayPanel
-                ref={(el) => (menuRefs.current[project.id] = el)}
+                ref={(el) => {
+                  menuRefs.current[project.id] = el;
+                }}
                 style={{ borderRadius: 10, borderWidth: 1 }}
               >
                 <div

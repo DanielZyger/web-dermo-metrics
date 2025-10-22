@@ -14,13 +14,18 @@ const CreateProjectPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const projectId = searchParams.get("project_id");
 
   const [formData, setFormData] = useState({
     name: "",
     description: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -28,39 +33,94 @@ const CreateProjectPage = () => {
     }));
   };
 
+  // Buscar dados do projeto se estiver editando
+  const fetchProjectData = useCallback(async () => {
+    if (!projectId) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects/${projectId}`);
+
+      if (!response.ok) {
+        throw new Error("Erro ao buscar dados do projeto");
+      }
+
+      const project = await response.json();
+      setFormData({
+        name: project.name || "",
+        description: project.description || "",
+      });
+      setIsEditMode(true);
+    } catch {
+      toast.current?.show({
+        severity: "error",
+        summary: "Erro",
+        detail: "Não foi possível carregar os dados do projeto",
+        life: 5000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [projectId]);
+
   const handleSubmit = useCallback(async () => {
     if (!user) return;
+
     const formDataObj = new FormData();
+    console.log("formData", formData);
     formDataObj.append("name", formData.name);
     formDataObj.append("description", formData.description);
     formDataObj.append("user_id", user.id.toString());
 
-    const response = await fetch(`${API_BASE_URL}/projects`, {
-      method: "POST",
-      body: formDataObj,
-    });
+    const url = isEditMode
+      ? `${API_BASE_URL}/projects/${projectId}`
+      : `${API_BASE_URL}/projects`;
 
-    if (!response.ok) {
-      throw new Error(`Erro ao salvar registro: ${response.statusText}`);
-    }
+    const method = isEditMode ? "PUT" : "POST";
 
-    if (response.ok) {
+    try {
+      const response = await fetch(url, {
+        method: method,
+        body: formDataObj,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao salvar registro: ${response.statusText}`);
+      }
+
       toast.current?.show({
         severity: "success",
         summary: "Sucesso",
-        detail: `Projeto criado com sucesso!`,
+        detail: isEditMode
+          ? "Projeto atualizado com sucesso!"
+          : "Projeto criado com sucesso!",
         life: 5000,
       });
 
       router.push(`/home?user_id=${user.id}`);
+    } catch {
+      toast.current?.show({
+        severity: "error",
+        summary: "Erro",
+        detail: isEditMode
+          ? "Não foi possível atualizar o projeto"
+          : "Não foi possível criar o projeto",
+        life: 5000,
+      });
     }
-  }, [formData, user, router]);
+  }, [formData, user, router, isEditMode, projectId]);
 
   useEffect(() => {
     if (token) {
       fetchUser(token);
     }
-  }, []);
+  }, [token, fetchUser]);
+
+  useEffect(() => {
+    if (projectId) {
+      fetchProjectData();
+    }
+  }, [projectId, fetchProjectData]);
 
   return (
     <div className="create-project-container">
@@ -88,17 +148,24 @@ const CreateProjectPage = () => {
                 <div className="floating-circle circle-3"></div>
 
                 <div className="main-icon">
-                  <i className="pi pi-folder" />
+                  <i
+                    className={`pi ${isEditMode ? "pi-pencil" : "pi-folder"}`}
+                  />
                   <div className="plus-badge">
-                    <i className="pi pi-plus" />
+                    <i
+                      className={`pi ${isEditMode ? "pi-check" : "pi-plus"}`}
+                    />
                   </div>
                 </div>
               </div>
 
-              <h1 className="welcome-title">Pronto para começar?</h1>
+              <h1 className="welcome-title">
+                {isEditMode ? "Editar Projeto" : "Pronto para começar?"}
+              </h1>
               <p className="welcome-description">
-                Você ainda não está vinculado a nenhum projeto. Vamos criar o
-                seu primeiro projeto!
+                {isEditMode
+                  ? "Atualize as informações do seu projeto conforme necessário."
+                  : "Você ainda não está vinculado a nenhum projeto. Vamos criar o seu primeiro projeto!"}
               </p>
 
               <div className="features-list">
@@ -120,52 +187,68 @@ const CreateProjectPage = () => {
             <div className="form-section">
               <div className="form-card">
                 <div className="form-header">
-                  <h2>Criar Novo Projeto</h2>
-                  <p>Preencha as informações básicas do seu projeto</p>
+                  <h2>
+                    {isEditMode ? "Editar Projeto" : "Criar Novo Projeto"}
+                  </h2>
+                  <p>
+                    {isEditMode
+                      ? "Modifique as informações do projeto"
+                      : "Preencha as informações básicas do seu projeto"}
+                  </p>
                 </div>
 
-                <div className="form-fields">
-                  <div className="field-group">
-                    <label>Nome do Projeto *</label>
-                    <div className="input-wrapper">
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="Ex: Sistema de Gestão, App Mobile, Website..."
-                        className="text-input"
-                      />
-                      <div className="input-icon">
-                        <i className="pi pi-folder-plus" />
+                {isLoading ? (
+                  <div className="loading-state">
+                    <i
+                      className="pi pi-spin pi-spinner"
+                      style={{ fontSize: "2rem" }}
+                    />
+                    <p>Carregando dados do projeto...</p>
+                  </div>
+                ) : (
+                  <div className="form-fields">
+                    <div className="field-group">
+                      <label>Nome do Projeto *</label>
+                      <div className="input-wrapper">
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          placeholder="Ex: Sistema de Gestão, App Mobile, Website..."
+                          className="text-input"
+                        />
+                        <div className="input-icon">
+                          <i className="pi pi-folder-plus" />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="field-group">
-                    <label>Descrição do Projeto</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      placeholder="Descreva o objetivo, escopo e principais características do seu projeto..."
-                      rows={4}
-                      className="textarea-input"
-                    />
-                    <p className="field-hint">
-                      Uma boa descrição ajuda a equipe a entender os objetivos
-                      do projeto
-                    </p>
-                  </div>
+                    <div className="field-group">
+                      <label>Descrição do Projeto</label>
+                      <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        placeholder="Descreva o objetivo, escopo e principais características do seu projeto..."
+                        rows={4}
+                        className="textarea-input"
+                      />
+                      <p className="field-hint">
+                        Uma boa descrição ajuda a equipe a entender os objetivos
+                        do projeto
+                      </p>
+                    </div>
 
-                  <button
-                    onClick={handleSubmit}
-                    disabled={!formData.name.trim()}
-                    className={`submit-button ${!formData.name.trim() ? "disabled" : ""}`}
-                  >
-                    Criar Projeto
-                  </button>
-                </div>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={!formData.name.trim()}
+                      className={`submit-button ${!formData.name.trim() ? "disabled" : ""}`}
+                    >
+                      {isEditMode ? "Atualizar Projeto" : "Criar Projeto"}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
