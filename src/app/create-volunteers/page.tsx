@@ -99,35 +99,36 @@ const VolunteerForm = () => {
 
     if (!project_id) return;
 
-    const formDataObj = new FormData();
-    formDataObj.append("name", formData.name);
-    formDataObj.append("description", formData.description);
-    formDataObj.append("gender", formData.gender);
-    formDataObj.append("age", formData.age);
-    formDataObj.append("phone", formData.phone);
-    formDataObj.append("project_id", project_id);
-
     try {
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        gender: formData.gender,
+        age: formData.age,
+        weight: formData.weight,
+        height: formData.height,
+        phone: formData.phone,
+        project_id: project_id,
+      };
+
       const response = await fetch(`${API_BASE_URL}/volunteers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...formData, project_id: project_id }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         throw new Error(`Erro ao salvar registro: ${response.statusText}`);
       }
 
-      if (response.ok) {
-        toast.current?.show({
-          severity: "success",
-          summary: "Sucesso",
-          detail: `Voluntário criado com sucesso!`,
-          life: 5000,
-        });
-      }
+      toast.current?.show({
+        severity: "success",
+        summary: "Sucesso",
+        detail: `Voluntário criado com sucesso!`,
+        life: 5000,
+      });
 
       handleCancel();
     } catch (error) {
@@ -145,7 +146,6 @@ const VolunteerForm = () => {
   const handleInputChange = (field: keyof VolunteerFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
-    // Remove erro do campo quando usuário começa a digitar
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }

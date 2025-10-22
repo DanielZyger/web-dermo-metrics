@@ -120,8 +120,13 @@ export default function HomePage() {
           </div>
 
           {volunteers && volunteers.length > 0 ? (
-            volunteers.map((v) => (
-              <VolunteerTable key={v.id} user={user} volunteer={v} />
+            volunteers.map((volunteer) => (
+              <VolunteerTable
+                user={user}
+                key={volunteer.id}
+                volunteer={volunteer}
+                project={selectedProject}
+              />
             ))
           ) : (
             <div

@@ -6,6 +6,8 @@ import { Volunteer } from "../utils/types/volunteer";
 import { Button } from "primereact/button";
 import { genderParse, statusParse } from "../utils/constants";
 import { useDelete } from "../hooks/use-delete";
+import { useRouter } from "next/navigation";
+import { Project } from "../utils/types/project";
 
 const statusStyles: Record<string, { backgroundColor: string; color: string }> =
   {
@@ -17,18 +19,19 @@ const statusStyles: Record<string, { backgroundColor: string; color: string }> =
 const VolunteerTable = ({
   user,
   volunteer,
+  project,
 }: {
   user: User;
   volunteer: Volunteer;
+  project: Project | undefined;
 }) => {
+  const router = useRouter();
   const { deleteItem, loading } = useDelete("/volunteers");
 
   const handleDelete = async (id: number) => {
     const sucesso = await deleteItem(id);
 
     if (sucesso) {
-      // Atualiza a lista após deletar
-      // await refetch();
       console.log("Item deletado com sucesso!");
     }
   };
@@ -105,12 +108,17 @@ const VolunteerTable = ({
         }}
       >
         <Button
+          aria-label="Editar"
           icon="pi pi-pencil"
           size="small"
           severity="secondary"
           rounded
           outlined
-          aria-label="Editar"
+          onClick={() =>
+            router.push(
+              `/create-volunteers?user_id=${user.id}&project_id=${project?.id}`,
+            )
+          }
         ></Button>
         <Button
           icon="pi pi-trash"
