@@ -116,7 +116,7 @@ const VolunteerTable = ({
           outlined
           onClick={() =>
             router.push(
-              `/create-volunteers?user_id=${user.id}&project_id=${project?.id}`,
+              `/create-volunteers?user_id=${user.id}&project_id=${project?.id}&volunteer_id=${volunteer.id}`,
             )
           }
         ></Button>

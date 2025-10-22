@@ -2,7 +2,7 @@
 
 import "./styles.css";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
@@ -35,6 +35,7 @@ interface VolunteerFormErrors {
 const VolunteerForm = () => {
   const searchParams = useSearchParams();
   const project_id = searchParams.get("project_id");
+  const volunteer_id = searchParams.get("volunteer_id");
   const router = useRouter();
 
   const toast = useRef<Toast | null>(null);
@@ -50,6 +51,8 @@ const VolunteerForm = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [errors, setErrors] = useState<VolunteerFormErrors>({});
 
   const genderOptions = [
@@ -84,6 +87,43 @@ const VolunteerForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Buscar dados do voluntário se estiver editando
+  const fetchVolunteerData = useCallback(async () => {
+    if (!volunteer_id) return;
+
+    setIsLoadingData(true);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/volunteers/${volunteer_id}`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Erro ao buscar dados do voluntário");
+      }
+
+      const volunteer = await response.json();
+      setFormData({
+        name: volunteer.name || "",
+        age: volunteer.age || null,
+        gender: volunteer.gender || "",
+        phone: volunteer.phone || "",
+        weight: volunteer.weight || null,
+        height: volunteer.height || null,
+        description: volunteer.description || "",
+      });
+      setIsEditMode(true);
+    } catch {
+      toast.current?.show({
+        severity: "error",
+        summary: "Erro",
+        detail: "Não foi possível carregar os dados do voluntário",
+        life: 5000,
+      });
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, [volunteer_id]);
+
   const handleSubmit = async () => {
     if (!validateForm()) {
       toast.current?.show({
@@ -111,8 +151,14 @@ const VolunteerForm = () => {
         project_id: project_id,
       };
 
-      const response = await fetch(`${API_BASE_URL}/volunteers`, {
-        method: "POST",
+      const url = isEditMode
+        ? `${API_BASE_URL}/volunteers/${volunteer_id}`
+        : `${API_BASE_URL}/volunteers`;
+
+      const method = isEditMode ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -126,16 +172,21 @@ const VolunteerForm = () => {
       toast.current?.show({
         severity: "success",
         summary: "Sucesso",
-        detail: `Voluntário criado com sucesso!`,
+        detail: isEditMode
+          ? "Voluntário atualizado com sucesso!"
+          : "Voluntário criado com sucesso!",
         life: 5000,
       });
 
       handleCancel();
-    } catch (error) {
+      router.back();
+    } catch {
       toast.current?.show({
         severity: "error",
         summary: "Erro",
-        detail: "Erro ao cadastrar voluntário. Tente novamente.",
+        detail: isEditMode
+          ? "Não foi possível atualizar o voluntário"
+          : "Não foi possível cadastrar o voluntário",
         life: 5000,
       });
     } finally {
@@ -143,7 +194,10 @@ const VolunteerForm = () => {
     }
   };
 
-  const handleInputChange = (field: keyof VolunteerFormData, value: any) => {
+  const handleInputChange = (
+    field: keyof VolunteerFormData,
+    value?: string | number | null, // TODO
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
     if (errors[field]) {
@@ -168,6 +222,12 @@ const VolunteerForm = () => {
     setErrors({});
   };
 
+  useEffect(() => {
+    if (volunteer_id) {
+      fetchVolunteerData();
+    }
+  }, [volunteer_id, fetchVolunteerData]);
+
   return (
     <div className="container">
       <Toast ref={toast} />
@@ -182,209 +242,240 @@ const VolunteerForm = () => {
                   Voltar
                 </button>
               </div>
-              <h2 className="title">Cadastrar Voluntário</h2>
-              <p className="subtitle">Preencha as informações do voluntário</p>
+              <h2 className="title">
+                {isEditMode ? "Editar Voluntário" : "Cadastrar Voluntário"}
+              </h2>
+              <p className="subtitle">
+                {isEditMode
+                  ? "Atualize as informações do voluntário"
+                  : "Preencha as informações do voluntário"}
+              </p>
             </div>
 
-            <div className="form">
-              <div className="formGroup">
-                <label className="label">Nome Completo *</label>
-                <div style={{ position: "relative" }}>
-                  <InputText
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Ex: João Silva Santos"
-                    className="input"
-                    style={{
-                      border: `2px solid ${errors.name ? "#ef4444" : "#e5e7eb"}`,
-                    }}
-                  />
-                  <div className="inputIcon">
-                    <i className="pi pi-user" />
-                  </div>
-                </div>
-                {errors.name && <p className="errorMessage">{errors.name}</p>}
+            {isLoadingData ? (
+              <div className="loadingState">
+                <i
+                  className="pi pi-spin pi-spinner"
+                  style={{ fontSize: "2rem" }}
+                />
+                <p>Carregando dados do voluntário...</p>
               </div>
-
-              <div className="twoColumns">
+            ) : (
+              <div className="form">
                 <div className="formGroup">
-                  <label className="label">Altura</label>
-                  <InputNumber
-                    value={formData.height}
-                    onValueChange={(e) => handleInputChange("height", e.value)}
-                    placeholder="Ex: 176.5 cm"
-                    min={15}
-                    max={250}
-                    minFractionDigits={0}
-                    maxFractionDigits={2}
-                    style={{
-                      width: "100%",
-                    }}
-                    inputStyle={{
-                      padding: "16px",
-                      backgroundColor: "#f9fafb",
-                      border: `2px solid ${errors.age ? "#ef4444" : "#e5e7eb"}`,
-                      borderRadius: "12px",
-                      color: "#111827",
-                      fontSize: "16px",
-                      outline: "none",
-                      transition: "all 0.2s",
-                    }}
-                  />
-                  {errors.height && (
-                    <p className="errorMessage">{errors.height}</p>
-                  )}
-                </div>
-                <div className="formGroup">
-                  <label className="label">Peso</label>
-                  <InputNumber
-                    value={formData.weight}
-                    onValueChange={(e) => handleInputChange("weight", e.value)}
-                    placeholder="Ex: 65.3 kg"
-                    min={2}
-                    minFractionDigits={0}
-                    maxFractionDigits={2}
-                    max={200}
-                    style={{
-                      width: "100%",
-                    }}
-                    inputStyle={{
-                      padding: "16px",
-                      backgroundColor: "#f9fafb",
-                      border: `2px solid ${errors.age ? "#ef4444" : "#e5e7eb"}`,
-                      borderRadius: "12px",
-                      color: "#111827",
-                      fontSize: "16px",
-                      outline: "none",
-                      transition: "all 0.2s",
-                    }}
-                  />
-                  {errors.weight && (
-                    <p className="errorMessage">{errors.weight}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="twoColumns">
-                <div className="formGroup">
-                  <label className="label">Idade</label>
-                  <InputNumber
-                    value={formData.age}
-                    onValueChange={(e) => handleInputChange("age", e.value)}
-                    placeholder="Ex: 25"
-                    min={1}
-                    max={120}
-                    style={{
-                      width: "100%",
-                    }}
-                    inputStyle={{
-                      padding: "16px",
-                      backgroundColor: "#f9fafb",
-                      border: `2px solid ${errors.age ? "#ef4444" : "#e5e7eb"}`,
-                      borderRadius: "12px",
-                      color: "#111827",
-                      fontSize: "16px",
-                      outline: "none",
-                      transition: "all 0.2s",
-                    }}
-                  />
-                  {errors.age && <p className="errorMessage">{errors.age}</p>}
-                </div>
-
-                <div className="formGroup">
-                  <label className="label">Telefone *</label>
+                  <label className="label">Nome Completo *</label>
                   <div style={{ position: "relative" }}>
                     <InputText
-                      value={formData.phone}
+                      value={formData.name}
                       onChange={(e) =>
-                        handleInputChange("phone", e.target.value)
+                        handleInputChange("name", e.target.value)
                       }
-                      placeholder="(00) 00000-0000"
+                      placeholder="Ex: João Silva Santos"
                       className="input"
                       style={{
-                        border: `2px solid ${errors.phone ? "#ef4444" : "#e5e7eb"}`,
+                        border: `2px solid ${errors.name ? "#ef4444" : "#e5e7eb"}`,
                       }}
                     />
                     <div className="inputIcon">
-                      <i className="pi pi-phone" />
+                      <i className="pi pi-user" />
                     </div>
                   </div>
-                  {errors.phone && (
-                    <p className="errorMessage">{errors.phone}</p>
+                  {errors.name && <p className="errorMessage">{errors.name}</p>}
+                </div>
+
+                <div className="twoColumns">
+                  <div className="formGroup">
+                    <label className="label">Altura</label>
+                    <InputNumber
+                      value={formData.height}
+                      onValueChange={(e) =>
+                        handleInputChange("height", e.value)
+                      }
+                      placeholder="Ex: 176.5 cm"
+                      min={15}
+                      max={250}
+                      minFractionDigits={0}
+                      maxFractionDigits={2}
+                      style={{
+                        width: "100%",
+                      }}
+                      inputStyle={{
+                        padding: "16px",
+                        backgroundColor: "#f9fafb",
+                        border: `2px solid ${errors.height ? "#ef4444" : "#e5e7eb"}`,
+                        borderRadius: "12px",
+                        color: "#111827",
+                        fontSize: "16px",
+                        outline: "none",
+                        transition: "all 0.2s",
+                      }}
+                    />
+                    {errors.height && (
+                      <p className="errorMessage">{errors.height}</p>
+                    )}
+                  </div>
+                  <div className="formGroup">
+                    <label className="label">Peso</label>
+                    <InputNumber
+                      value={formData.weight}
+                      onValueChange={(e) =>
+                        handleInputChange("weight", e.value)
+                      }
+                      placeholder="Ex: 65.3 kg"
+                      min={2}
+                      minFractionDigits={0}
+                      maxFractionDigits={2}
+                      max={200}
+                      style={{
+                        width: "100%",
+                      }}
+                      inputStyle={{
+                        padding: "16px",
+                        backgroundColor: "#f9fafb",
+                        border: `2px solid ${errors.weight ? "#ef4444" : "#e5e7eb"}`,
+                        borderRadius: "12px",
+                        color: "#111827",
+                        fontSize: "16px",
+                        outline: "none",
+                        transition: "all 0.2s",
+                      }}
+                    />
+                    {errors.weight && (
+                      <p className="errorMessage">{errors.weight}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="twoColumns">
+                  <div className="formGroup">
+                    <label className="label">Idade</label>
+                    <InputNumber
+                      value={formData.age}
+                      onValueChange={(e) => handleInputChange("age", e.value)}
+                      placeholder="Ex: 25"
+                      min={1}
+                      max={120}
+                      style={{
+                        width: "100%",
+                      }}
+                      inputStyle={{
+                        padding: "16px",
+                        backgroundColor: "#f9fafb",
+                        border: `2px solid ${errors.age ? "#ef4444" : "#e5e7eb"}`,
+                        borderRadius: "12px",
+                        color: "#111827",
+                        fontSize: "16px",
+                        outline: "none",
+                        transition: "all 0.2s",
+                      }}
+                    />
+                    {errors.age && <p className="errorMessage">{errors.age}</p>}
+                  </div>
+
+                  <div className="formGroup">
+                    <label className="label">Telefone *</label>
+                    <div style={{ position: "relative" }}>
+                      <InputText
+                        value={formData.phone}
+                        onChange={(e) =>
+                          handleInputChange("phone", e.target.value)
+                        }
+                        placeholder="(00) 00000-0000"
+                        className="input"
+                        style={{
+                          border: `2px solid ${errors.phone ? "#ef4444" : "#e5e7eb"}`,
+                        }}
+                      />
+                      <div className="inputIcon">
+                        <i className="pi pi-phone" />
+                      </div>
+                    </div>
+                    {errors.phone && (
+                      <p className="errorMessage">{errors.phone}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="label">Gênero *</label>
+                  <Dropdown
+                    value={formData.gender}
+                    onChange={(e) => handleInputChange("gender", e.value)}
+                    options={genderOptions}
+                    placeholder="Selecione o gênero"
+                    style={{
+                      width: "100%",
+                    }}
+                    // TODO
+                    inputStyle={{
+                      padding: "16px",
+                      backgroundColor: "#f9fafb",
+                      border: `2px solid ${errors.gender ? "#ef4444" : "#e5e7eb"}`,
+                      borderRadius: "12px",
+                      color: "#111827",
+                      fontSize: "16px",
+                    }}
+                  />
+                  {errors.gender && (
+                    <p className="errorMessage">{errors.gender}</p>
                   )}
                 </div>
-              </div>
 
-              <div>
-                <label className="label">Gênero *</label>
-                <Dropdown
-                  value={formData.gender}
-                  onChange={(e) => handleInputChange("gender", e.value)}
-                  options={genderOptions}
-                  placeholder="Selecione o gênero"
-                  style={{
-                    width: "100%",
-                  }}
-                  inputStyle={{
-                    padding: "16px",
-                    backgroundColor: "#f9fafb",
-                    border: `2px solid ${errors.gender ? "#ef4444" : "#e5e7eb"}`,
-                    borderRadius: "12px",
-                    color: "#111827",
-                    fontSize: "16px",
-                  }}
-                />
-                {errors.gender && (
-                  <p className="errorMessage">{errors.gender}</p>
-                )}
-              </div>
+                <div>
+                  <label className="label">Observações *</label>
+                  <InputTextarea
+                    value={formData.description}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
+                    placeholder="Adicione observações sobre o voluntário"
+                    rows={4}
+                    className="textarea"
+                    style={{
+                      border: `2px solid ${errors.description ? "#ef4444" : "#e5e7eb"}`,
+                    }}
+                  />
+                  {errors.description && (
+                    <p className="errorMessage">{errors.description}</p>
+                  )}
+                  <p className="helpText">
+                    Inclua observações sobre o voluntário
+                  </p>
+                </div>
 
-              <div>
-                <label className="label">Observações *</label>
-                <InputTextarea
-                  value={formData.description}
-                  onChange={(e) =>
-                    handleInputChange("description", e.target.value)
-                  }
-                  placeholder="Adicione observações sobre o voluntário"
-                  rows={4}
-                  className="textarea"
-                  style={{
-                    border: `2px solid ${errors.description ? "#ef4444" : "#e5e7eb"}`,
-                  }}
-                />
-                {errors.description && (
-                  <p className="errorMessage">{errors.description}</p>
-                )}
-                <p className="helpText">
-                  Inclua observações sobre o voluntário
-                </p>
-              </div>
-
-              <div style={{ display: "flex", gap: "12px", marginTop: "20px" }}>
-                <Button
-                  label="Cancelar"
-                  severity="secondary"
-                  outlined
-                  onClick={handleCancel}
-                  className="cancelButton"
-                />
-                <button
-                  onClick={handleSubmit}
-                  disabled={
-                    loading ||
-                    !formData.name.trim() ||
-                    !formData.gender ||
-                    !formData.phone.trim() ||
-                    !formData.description.trim()
-                  }
-                  className="submitButton"
+                <div
+                  style={{ display: "flex", gap: "12px", marginTop: "20px" }}
                 >
-                  {loading && <i className="pi pi-spin pi-spinner" />}
-                  {loading ? "Cadastrando..." : "Cadastrar Voluntário"}
-                </button>
+                  <Button
+                    label="Cancelar"
+                    severity="secondary"
+                    outlined
+                    onClick={handleCancel}
+                    className="cancelButton"
+                  />
+                  <button
+                    onClick={handleSubmit}
+                    disabled={
+                      loading ||
+                      !formData.name.trim() ||
+                      !formData.gender ||
+                      !formData.phone.trim() ||
+                      !formData.description.trim()
+                    }
+                    className="submitButton"
+                  >
+                    {loading && <i className="pi pi-spin pi-spinner" />}
+                    {loading
+                      ? isEditMode
+                        ? "Atualizando..."
+                        : "Cadastrando..."
+                      : isEditMode
+                        ? "Atualizar Voluntário"
+                        : "Cadastrar Voluntário"}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
