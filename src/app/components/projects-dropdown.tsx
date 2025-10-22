@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 const ProjectsDropdown = ({
   isCollapsed,
   projects,
+  refetchList,
   selectedProject,
   handleProjectSelect,
 }: ProjectsDropdownProps) => {
@@ -32,6 +33,8 @@ const ProjectsDropdown = ({
     const sucesso = await deleteItem(id);
 
     if (sucesso) {
+      refetchList();
+
       toast.current?.show({
         severity: "success",
         summary: "Sucesso",
@@ -133,10 +136,9 @@ const ProjectsDropdown = ({
                 />
               </div>
 
-              {/* Menu contextual */}
               <OverlayPanel
-                style={{ borderRadius: 10, borderWidth: 1 }}
                 ref={(el) => (menuRefs.current[project.id] = el)}
+                style={{ borderRadius: 10, borderWidth: 1 }}
               >
                 <div
                   style={{
@@ -203,4 +205,5 @@ type ProjectsDropdownProps = {
   projects: Project[] | undefined;
   selectedProject: Project | undefined;
   handleProjectSelect: (project: Project) => void;
+  refetchList: () => Promise<void>;
 };

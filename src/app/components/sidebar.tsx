@@ -25,7 +25,7 @@ export default function Sidebar({
   const searchParams = useSearchParams();
   const user_id = searchParams.get("user_id");
 
-  const { data: user } = useApiItem<User>(`/users/${user_id}`);
+  const { data: user, refetch } = useApiItem<User>(`/users/${user_id}`);
 
   const projects = useMemo(() => {
     if (!user) return;
@@ -166,6 +166,7 @@ export default function Sidebar({
             projects={projects}
             selectedProject={selectedProject}
             handleProjectSelect={handleProjectSelect}
+            refetchList={refetch}
           />
         )}
       </aside>
