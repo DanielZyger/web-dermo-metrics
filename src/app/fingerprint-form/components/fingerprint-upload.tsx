@@ -61,10 +61,6 @@ const FingerprintUpload = ({
     }
   };
 
-  useEffect(() => {
-    console.log("imagePreview", imagePreview);
-  }, [imagePreview]);
-
   const removeImage = () => {
     setFormData((prev) => ({
       ...prev,

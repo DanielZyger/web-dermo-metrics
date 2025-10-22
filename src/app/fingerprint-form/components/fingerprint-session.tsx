@@ -3,7 +3,7 @@
 import { Card } from "primereact/card";
 import FingerprintUpload from "./fingerprint-upload";
 import { FingerKey, fingerParse } from "@/app/utils/constants";
-import { Dispatch, RefObject, SetStateAction, useState } from "react";
+import { Dispatch, RefObject, SetStateAction, useMemo, useState } from "react";
 import { Toast } from "primereact/toast";
 import { FormDataFingerprint } from "@/app/utils/types/fingerprint";
 import FingerprintDisplay from "./fingerprint-display";
@@ -26,7 +26,6 @@ const FingerprintSession = ({
     return !!(fingerData?.image_data || fingerData?.image_filtered);
   };
 
-  console.log("form", formData);
   return (
     <Card
       title="Cadastro de Digitais"
@@ -89,7 +88,7 @@ const FingerprintSession = ({
             width: "100%",
           }}
         >
-          {fingers.map((finger) => (
+          {[...fingers].reverse().map((finger) => (
             <div key={`left-${finger}`} style={{ flex: 1 }}>
               {hasFingerprint("leftHand", finger) ? (
                 <FingerprintDisplay

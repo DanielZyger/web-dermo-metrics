@@ -96,31 +96,6 @@ const PersonalDataForm = () => {
                   letterSpacing: "0.8px",
                 }}
               >
-                ID
-              </label>
-              <span
-                style={{
-                  fontSize: "20px",
-                  fontWeight: "700",
-                  color: "#1e293b",
-                }}
-              >
-                # {volunteer.id}
-              </span>
-            </div>
-
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "12px",
-                  fontWeight: "500",
-                  color: "#64748b",
-                  marginBottom: "6px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.8px",
-                }}
-              >
                 Nome Completo
               </label>
               <span
@@ -156,6 +131,56 @@ const PersonalDataForm = () => {
                 }}
               >
                 {volunteer.age ? `${volunteer.age} anos` : "-"}
+              </span>
+            </div>
+
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  color: "#64748b",
+                  marginBottom: "6px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.8px",
+                }}
+              >
+                Altura
+              </label>
+              <span
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  color: "#1e293b",
+                }}
+              >
+                {volunteer.height} cm
+              </span>
+            </div>
+
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  color: "#64748b",
+                  marginBottom: "6px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.8px",
+                }}
+              >
+                Peso
+              </label>
+              <span
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  color: "#1e293b",
+                }}
+              >
+                {volunteer.weight} kg
               </span>
             </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import Sidebar from "../components/sidebar";
@@ -19,7 +19,6 @@ import {
 import { Volunteer } from "../utils/types/volunteer";
 import { useSearchParams } from "next/navigation";
 import { useApiItem } from "../hooks/use-api-item";
-import base64ToFile from "../utils/base64_to_file";
 
 export default function FingerprintForm() {
   const searchParams = useSearchParams();
@@ -51,24 +50,27 @@ export default function FingerprintForm() {
     },
   };
 
-  const buildFormData = (volunteer: Volunteer | null): FormDataFingerprint => {
-    if (!volunteer || !volunteer.fingerprints.length) return emptyFormData;
+  const buildFormData = useCallback(
+    (volunteer: Volunteer | null): FormDataFingerprint => {
+      if (!volunteer || !volunteer.fingerprints.length) return emptyFormData;
 
-    volunteer.fingerprints.forEach((fp) => {
-      const hand = fp.hand === "left" ? "leftHand" : "rightHand";
-      const finger = fp.finger as FingerKey;
+      volunteer.fingerprints.forEach((fp) => {
+        const hand = fp.hand === "left" ? "leftHand" : "rightHand";
+        const finger = fp.finger as FingerKey;
 
-      if (!fp.image_data || !fp.image_filtered) return;
+        if (!fp.image_data || !fp.image_filtered) return;
 
-      formData[hand][finger] = {
-        image_data: fp.image_data,
-        image_filtered: fp.image_filtered,
-        file: null,
-      };
-    });
+        formData[hand][finger] = {
+          image_data: fp.image_data,
+          image_filtered: fp.image_filtered,
+          file: null,
+        };
+      });
 
-    return formData;
-  };
+      return formData;
+    },
+    [],
+  );
 
   const [formData, setFormData] = useState<FormDataFingerprint>(() =>
     buildFormData(volunteer),
@@ -273,7 +275,6 @@ export default function FingerprintForm() {
           <PersonalDataForm />
 
           <FingerprintSession
-            volunteer={volunteer}
             formData={formData}
             setFormData={setFormData}
             toast={toast}

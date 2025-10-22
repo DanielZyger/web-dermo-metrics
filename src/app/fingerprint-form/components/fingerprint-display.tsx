@@ -5,7 +5,13 @@ import { Dropdown } from "primereact/dropdown";
 import { InputNumber } from "primereact/inputnumber";
 import { InputTextarea } from "primereact/inputtextarea";
 import { FingerKey, fingerParse } from "@/app/utils/constants";
-import { Dispatch, RefObject, SetStateAction, useState } from "react";
+import {
+  Dispatch,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import { Toast } from "primereact/toast";
 import { FormDataFingerprint } from "@/app/utils/types/fingerprint";
 import Image from "next/image";
@@ -86,10 +92,6 @@ const FingerprintDisplay = ({
       },
     }));
   };
-
-  const quantifyImage = () => {
-    
-  }
 
   const handleSaveAnalysis = () => {
     // Salva os dados da análise no formData
