@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "primereact/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/sidebar";
 import { useApi } from "../hooks/use-api";
 import { Project } from "../utils/types/project";
@@ -19,8 +19,19 @@ export default function HomePage() {
 
   const { data: user } = useApiItem<User>(`/users/${user_id}`);
 
-  const { data: volunteers, loading: loadingVolunteers } =
-    useApi<Volunteer>(`/volunteers`);
+  const {
+    data: volunteers,
+    loading: loadingVolunteers,
+    refetch,
+  } = useApi<Volunteer>(
+    selectedProject
+      ? `/volunteers/by-project/${selectedProject.id}`
+      : `/volunteers/`,
+  );
+
+  useEffect(() => {
+    refetch();
+  }, [selectedProject, refetch]);
 
   if (!user || loadingVolunteers) {
     return (
@@ -28,10 +39,15 @@ export default function HomePage() {
         style={{
           minHeight: "100vh",
           display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           backgroundColor: "#F3F4F6",
         }}
       >
-        Selecione um projeto para visualizar os voluntários.
+        <div style={{ textAlign: "center" }}>
+          <i className="pi pi-spin pi-spinner" style={{ fontSize: "2rem" }} />
+          <p>Carregando...</p>
+        </div>
       </div>
     );
   }
@@ -52,110 +68,137 @@ export default function HomePage() {
       />
 
       <main style={{ flex: 1, padding: "24px", marginTop: 20 }}>
-        <header style={{ marginBottom: "20px" }}>
-          <h2 style={{ fontSize: "22px", fontWeight: "bold", color: "black" }}>
-            {selectedProject?.name || "Projeto"}
-          </h2>
-          <p style={{ color: "#555", marginTop: 12, marginBottom: 12 }}>
-            {selectedProject?.description}
-          </p>
-        </header>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
-            padding: "15px",
-            borderBottom: "1px solid #e5e7eb",
-          }}
-        >
-          <Button
-            label="Cadastrar Voluntário"
-            style={{ padding: 10 }}
-            size="small"
-            onClick={() => {
-              router.push(
-                `/create-volunteers?user_id=${user?.id}&project_id=${selectedProject?.id}`,
-              );
-            }}
-          />
-        </div>
-        <section
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: "12px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-            overflow: "hidden",
-          }}
-        >
+        {!selectedProject ? (
           <div
             style={{
-              flexDirection: "row",
               display: "flex",
-              width: "100%",
-              padding: "12px 16px",
-              borderBottom: "1px solid #e5e7eb",
-              backgroundColor: "#1E3A8A",
-              fontWeight: "600",
-              fontSize: "15px",
-              color: "white",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              minHeight: "200px",
+              backgroundColor: "#F3F4F6",
             }}
           >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1fr 1fr",
-                width: "90%",
-              }}
-            >
-              <div>Voluntário</div>
-              <div>Idade</div>
-              <div>Altura</div>
-              <div>Peso</div>
-              <div>Sexo</div>
-              <div>Status</div>
-            </div>
-            <div style={{ textAlign: "center" }}>Ações</div>
-          </div>
-
-          {volunteers && volunteers.length > 0 ? (
-            volunteers.map((volunteer) => (
-              <VolunteerTable
-                user={user}
-                key={volunteer.id}
-                volunteer={volunteer}
-                project={selectedProject}
-              />
-            ))
-          ) : (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "60px 20px",
-                color: "#6b7280",
-                backgroundColor: "#f9fafb",
-                borderRadius: "8px",
-                border: "1px #d1d5db",
-              }}
-            >
+            <div style={{ textAlign: "center" }}>
               <i
-                className="pi pi-users"
-                style={{
-                  fontSize: "48px",
-                  color: "#d1d5db",
-                  marginBottom: "16px",
-                }}
-              ></i>
-              <h3 style={{ margin: "0 0 8px 0", color: "#374151" }}>
-                Nenhum voluntário cadastrado
-              </h3>
-              <p style={{ fontSize: "14px", margin: 0 }}>
-                Cadastre o primeiro voluntário para começar.
+                className="pi pi-folder"
+                style={{ fontSize: "3rem", color: "#6B7280" }}
+              />
+              <p style={{ marginTop: "1rem", color: "#6B7280" }}>
+                Selecione um projeto para visualizar os voluntários.
               </p>
             </div>
-          )}
-        </section>
+          </div>
+        ) : (
+          <>
+            <header style={{ marginBottom: "20px" }}>
+              <h2
+                style={{ fontSize: "22px", fontWeight: "bold", color: "black" }}
+              >
+                {selectedProject?.name || "Projeto"}
+              </h2>
+              <p style={{ color: "#555", marginTop: 12, marginBottom: 12 }}>
+                {selectedProject?.description}
+              </p>
+            </header>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                padding: "15px",
+                borderBottom: "1px solid #e5e7eb",
+              }}
+            >
+              <Button
+                label="Cadastrar Voluntário"
+                style={{ padding: 10 }}
+                size="small"
+                onClick={() => {
+                  router.push(
+                    `/create-volunteers?user_id=${user?.id}&project_id=${selectedProject?.id}`,
+                  );
+                }}
+              />
+            </div>
+            <section
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: "12px",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  flexDirection: "row",
+                  display: "flex",
+                  width: "100%",
+                  padding: "12px 16px",
+                  borderBottom: "1px solid #e5e7eb",
+                  backgroundColor: "#1E3A8A",
+                  fontWeight: "600",
+                  fontSize: "15px",
+                  color: "white",
+                }}
+              >
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1.5fr 1fr 1fr 1fr 1fr 1fr",
+                    width: "90%",
+                  }}
+                >
+                  <div>Voluntário</div>
+                  <div>Idade</div>
+                  <div>Altura</div>
+                  <div>Peso</div>
+                  <div>Sexo</div>
+                  <div>Status</div>
+                </div>
+                <div style={{ textAlign: "center" }}>Ações</div>
+              </div>
+
+              {volunteers && volunteers.length > 0 ? (
+                volunteers.map((volunteer) => (
+                  <VolunteerTable
+                    user={user}
+                    key={volunteer.id}
+                    volunteer={volunteer}
+                    project={selectedProject}
+                  />
+                ))
+              ) : (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "60px 20px",
+                    color: "#6b7280",
+                    backgroundColor: "#f9fafb",
+                    borderRadius: "8px",
+                    border: "1px #d1d5db",
+                  }}
+                >
+                  <i
+                    className="pi pi-users"
+                    style={{
+                      fontSize: "48px",
+                      color: "#d1d5db",
+                      marginBottom: "16px",
+                    }}
+                  ></i>
+                  <h3 style={{ margin: "0 0 8px 0", color: "#374151" }}>
+                    Nenhum voluntário cadastrado
+                  </h3>
+                  <p style={{ fontSize: "14px", margin: 0 }}>
+                    Cadastre o primeiro voluntário para começar.
+                  </p>
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </main>
     </div>
   );
