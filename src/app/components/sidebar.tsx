@@ -14,6 +14,7 @@ import { useApiItem } from "../hooks/use-api-item";
 import { User } from "../utils/types/user";
 import { Project } from "../utils/types/project";
 import { useSearchParams } from "next/navigation";
+import ProjectsDropdown from "./projects-dropdown";
 
 export default function Sidebar({
   selectedProject,
@@ -32,11 +33,6 @@ export default function Sidebar({
   }, [user]);
 
   const [isCollapsed, setIsCollapsed] = useState(canCollapse);
-  const [isProjectsExpanded, setIsProjectsExpanded] = useState(false);
-
-  const toggleProjects = () => {
-    setIsProjectsExpanded(!isProjectsExpanded);
-  };
 
   const handleToggle = () => {
     if (!canCollapse) return;
@@ -165,77 +161,12 @@ export default function Sidebar({
         </div>
 
         {showProject && (
-          <div style={{ marginBottom: "20px" }}>
-            <Button
-              className="project-dropdown projects-collapse"
-              icon="pi pi-folder"
-              label={!isCollapsed ? "Projetos" : undefined}
-              text
-              style={{
-                justifyContent: isCollapsed ? "center" : "space-between",
-                padding: isCollapsed ? "12px 8px" : "12px 16px",
-              }}
-              tooltip={isCollapsed ? "Projetos" : undefined}
-              tooltipOptions={{ position: "right" }}
-              onClick={toggleProjects}
-            >
-              {!isCollapsed && (
-                <i
-                  className={`pi pi-chevron-${isProjectsExpanded ? "up" : "down"}`}
-                  style={{
-                    fontSize: "12px",
-                    marginLeft: "8px",
-                    transition: "transform 0.2s ease",
-                  }}
-                />
-              )}
-            </Button>
-
-            {/* Lista de projetos colapsável */}
-            <div
-              style={{
-                overflow: "hidden",
-                transition:
-                  "max-height 0.3s ease-in-out, opacity 0.3s ease-in-out",
-                maxHeight: isProjectsExpanded && !isCollapsed ? "300px" : "0px",
-                opacity: isProjectsExpanded && !isCollapsed ? 1 : 0,
-              }}
-            >
-              <div
-                style={{
-                  paddingLeft: "16px",
-                  marginTop: "8px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "4px",
-                }}
-              >
-                {projects?.map((project, index) => (
-                  <Button
-                    key={index}
-                    icon="pi pi-folder"
-                    label={project.name}
-                    text
-                    size="small"
-                    className="sidebar-project-list"
-                    style={{
-                      color:
-                        selectedProject?.id === project.id
-                          ? "#60A5FA"
-                          : "rgba(255,255,255,0.8)",
-                      fontWeight:
-                        selectedProject?.id === project.id ? "600" : "400",
-                      backgroundColor:
-                        selectedProject?.id === project.id
-                          ? "rgba(96,165,250,0.1)"
-                          : "transparent",
-                    }}
-                    onClick={() => handleProjectSelect(project)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
+          <ProjectsDropdown
+            isCollapsed={isCollapsed}
+            projects={projects}
+            selectedProject={selectedProject}
+            handleProjectSelect={handleProjectSelect}
+          />
         )}
       </aside>
     </>

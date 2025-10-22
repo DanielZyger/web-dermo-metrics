@@ -361,7 +361,6 @@ const VolunteerForm = () => {
                 </p>
               </div>
 
-              {/* Botões */}
               <div style={{ display: "flex", gap: "12px", marginTop: "20px" }}>
                 <Button
                   label="Cancelar"
