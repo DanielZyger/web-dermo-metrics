@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import Sidebar from "../components/sidebar";
@@ -8,20 +8,21 @@ import PersonalDataForm from "./components/personal-data";
 import FingerprintSession from "./components/fingerprint-session";
 import { FormDataFingerprint } from "../utils/types/fingerprint";
 import { Volunteer } from "../utils/types/volunteer";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useApiItem } from "../hooks/use-api-item";
 import {
   submitFingerprints,
   transformFingerprintsToFormData,
 } from "./utils/fingerprint-api";
+import { useVolunteerStore } from "@/store/use-volunteer-store";
 
 export default function FingerprintForm() {
   const toast = useRef<Toast>(null);
-  const searchParams = useSearchParams();
-  const volunteerId = Number(searchParams.get("volunteer_id"));
+  const router = useRouter();
+  const { selectedVolunteer } = useVolunteerStore();
 
   const { data: volunteer, refetch } = useApiItem<Volunteer>(
-    `/volunteers/${volunteerId}`,
+    `/volunteers/${selectedVolunteer?.id}`,
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,11 +64,12 @@ export default function FingerprintForm() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
+    if (!selectedVolunteer) return;
+
     try {
-      // Submete as digitais
       const { success, errors } = await submitFingerprints(
         formData,
-        volunteerId,
+        selectedVolunteer.id,
       );
 
       if (success > 0) {
@@ -113,8 +115,24 @@ export default function FingerprintForm() {
   };
 
   const handleGoBack = () => {
-    // validar se tem alguma fingerprint adicionada
-    // alert informando que os dados inseridos vão ser limpos se ele voltar agora
+    const hasFingerprints =
+      Object.values(formData.leftHand).some(
+        (f) => f.image_data || f.image_filtered,
+      ) ||
+      Object.values(formData.rightHand).some(
+        (f) => f.image_data || f.image_filtered,
+      );
+
+    if (hasFingerprints) {
+      // mostra confirmação antes de sair
+      const confirmLeave = window.confirm(
+        "Há digitais adicionadas. Se você voltar agora, os dados inseridos serão perdidos.\n\nDeseja realmente voltar?",
+      );
+
+      if (!confirmLeave) return;
+    }
+
+    router.back();
   };
 
   return (

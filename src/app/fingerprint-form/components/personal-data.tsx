@@ -3,16 +3,16 @@
 import { Card } from "primereact/card";
 import { useApiItem } from "@/app/hooks/use-api-item";
 import { genderParse } from "@/app/utils/constants";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Volunteer } from "@/app/utils/types/volunteer";
+import { useVolunteerStore } from "@/store/use-volunteer-store";
 
 const PersonalDataForm = () => {
-  const searchParams = useSearchParams();
-  const volunteerId = searchParams.get("volunteer_id");
+  const { selectedVolunteer } = useVolunteerStore();
   const router = useRouter();
 
   const { data: volunteer, loading } = useApiItem<Volunteer>(
-    `/volunteers/${volunteerId}`,
+    `/volunteers/${selectedVolunteer?.id}`,
   );
 
   const handleGoBack = () => {

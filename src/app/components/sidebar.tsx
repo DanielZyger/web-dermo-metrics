@@ -1,20 +1,13 @@
 "use client";
 
-import {
-  useState,
-  useMemo,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useCallback,
-} from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Button } from "primereact/button";
 import { Tooltip } from "primereact/tooltip";
 import { useApiItem } from "../hooks/use-api-item";
 import { User } from "../utils/types/user";
 import { Project } from "../utils/types/project";
-import { useSearchParams } from "next/navigation";
 import ProjectsDropdown from "./projects-dropdown";
+import { useUserStore } from "@/store/use-user-store";
 
 export default function Sidebar({
   selectedProject,
@@ -22,10 +15,9 @@ export default function Sidebar({
   showProject = true,
   canCollapse = false,
 }: SidebarParams) {
-  const searchParams = useSearchParams();
-  const user_id = searchParams.get("user_id");
+  const { user: userStore } = useUserStore();
 
-  const { data: user, refetch } = useApiItem<User>(`/users/${user_id}`);
+  const { data: user, refetch } = useApiItem<User>(`/users/${userStore?.id}`);
 
   const projects = useMemo(() => {
     if (!user) return;
@@ -177,6 +169,6 @@ export default function Sidebar({
 type SidebarParams = {
   showProject?: boolean;
   selectedProject?: Project | undefined;
-  setSelectedProject?: Dispatch<SetStateAction<Project | undefined>>;
+  setSelectedProject?: (project?: Project | undefined) => void;
   canCollapse?: boolean;
 };

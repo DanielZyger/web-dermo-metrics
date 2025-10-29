@@ -8,6 +8,7 @@ import { genderParse, statusParse } from "../utils/constants";
 import { useDelete } from "../hooks/use-delete";
 import { useRouter } from "next/navigation";
 import { Project } from "../utils/types/project";
+import { useVolunteerStore } from "@/store/use-volunteer-store";
 
 const statusStyles: Record<string, { backgroundColor: string; color: string }> =
   {
@@ -26,6 +27,7 @@ const VolunteerTable = ({
   project: Project | undefined;
 }) => {
   const router = useRouter();
+  const { setSelectedVolunteer } = useVolunteerStore();
   const { deleteItem, loading } = useDelete("/volunteers");
 
   const handleDelete = async (id: number) => {
@@ -50,7 +52,8 @@ const VolunteerTable = ({
       <Link
         key={volunteer.id}
         style={{ width: "90%" }}
-        href={`/fingerprint-form?volunteer_id=${volunteer.id}&user_id=${user?.id}`}
+        onClick={() => setSelectedVolunteer(volunteer)}
+        href={"/fingerprint-form"}
       >
         <div key={volunteer.id} className="table-row">
           <div style={{ display: "flex", flexDirection: "column" }}>
@@ -114,11 +117,10 @@ const VolunteerTable = ({
           severity="secondary"
           rounded
           outlined
-          onClick={() =>
-            router.push(
-              `/create-volunteers?user_id=${user.id}&project_id=${project?.id}&volunteer_id=${volunteer.id}`,
-            )
-          }
+          onClick={() => {
+            setSelectedVolunteer(volunteer);
+            router.push("/create-volunteers");
+          }}
         ></Button>
         <Button
           icon="pi pi-trash"

@@ -60,7 +60,6 @@ const FingerprintUpload = ({
       },
     }));
 
-    // Limpar o FileUpload
     if (fileUploadRef.current) {
       fileUploadRef.current.clear();
     }

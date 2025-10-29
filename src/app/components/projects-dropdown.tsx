@@ -7,7 +7,8 @@ import { useRef, useState } from "react";
 import "./projects-dropdown/styles.css";
 import { useDelete } from "../hooks/use-delete";
 import { Toast } from "primereact/toast";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/use-user-store";
 
 const ProjectsDropdown = ({
   isCollapsed,
@@ -16,9 +17,8 @@ const ProjectsDropdown = ({
   selectedProject,
   handleProjectSelect,
 }: ProjectsDropdownProps) => {
-  const searchParams = useSearchParams();
+  const { user } = useUserStore();
   const router = useRouter();
-  const user_id = searchParams.get("user_id");
   const toast = useRef<Toast | null>(null);
   const menuRefs = useRef<{ [key: string]: OverlayPanel | null }>({});
   const [isProjectsExpanded, setIsProjectsExpanded] = useState(false);
@@ -160,7 +160,7 @@ const ProjectsDropdown = ({
                     text
                     onClick={() =>
                       router.push(
-                        `/create-project?user_id=${user_id}&project_id=${project.id}`,
+                        `/create-project?user_id=${user?.id}&project_id=${project.id}`,
                       )
                     }
                   />
@@ -192,7 +192,7 @@ const ProjectsDropdown = ({
             loading={loading}
             size="small"
             iconPos="left"
-            onClick={() => router.push(`/create-project?user_id=${user_id}`)}
+            onClick={() => router.push(`/create-project?user_id=${user?.id}`)}
           />
         </div>
       </div>

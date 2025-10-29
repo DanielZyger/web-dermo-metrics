@@ -1,23 +1,31 @@
 "use client";
 
 import { Button } from "primereact/button";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Sidebar from "../components/sidebar";
 import { useApi } from "../hooks/use-api";
-import { Project } from "../utils/types/project";
 import { useApiItem } from "../hooks/use-api-item";
 import { User } from "../utils/types/user";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Volunteer } from "../utils/types/volunteer";
+import { useProjectStore } from "../../store/use-project-store";
 import VolunteerTable from "../components/volunteer-table";
+import { useUserStore } from "@/store/use-user-store";
 
 export default function HomePage() {
-  const [selectedProject, setSelectedProject] = useState<Project | undefined>();
+  const { selectedProject, setSelectedProject } = useProjectStore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const user_id = searchParams.get("user_id");
 
-  const { data: user } = useApiItem<User>(`/users/${user_id}`);
+  const { user, setUser } = useUserStore();
+  const { data: apiUser } = useApiItem<User>(`/users/${user_id}`);
+
+  useEffect(() => {
+    if (apiUser) {
+      setUser(apiUser);
+    }
+  }, [apiUser, setUser]);
 
   const {
     data: volunteers,

@@ -1,20 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import "./styles.css";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Sidebar from "../components/sidebar";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useUserWithLocalStorage } from "../hooks/use-user-local-storage";
+import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "../utils/constants";
 import { Toast } from "primereact/toast";
-import "./styles.css";
+import { useUserStore } from "@/store/use-user-store";
+import { useProjectStore } from "@/store/use-project-store";
 
 const CreateProjectPage = () => {
-  const { user, fetchUser } = useUserWithLocalStorage();
+  const { user } = useUserStore();
+  const { selectedProject } = useProjectStore();
   const toast = useRef<Toast | null>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-  const projectId = searchParams.get("project_id");
+  const projectId = useMemo(() => {
+    return selectedProject?.id;
+  }, [selectedProject]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -109,12 +111,6 @@ const CreateProjectPage = () => {
       });
     }
   }, [formData, user, router, isEditMode, projectId]);
-
-  useEffect(() => {
-    if (token) {
-      fetchUser(token);
-    }
-  }, [token, fetchUser]);
 
   useEffect(() => {
     if (projectId) {

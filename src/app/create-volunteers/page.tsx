@@ -1,8 +1,13 @@
 "use client";
 
 import "./styles.css";
-
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
@@ -10,7 +15,9 @@ import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Toast } from "primereact/toast";
 import { API_BASE_URL } from "../utils/constants";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useProjectStore } from "@/store/use-project-store";
+import { useVolunteerStore } from "@/store/use-volunteer-store";
 
 interface VolunteerFormData {
   name: string;
@@ -33,10 +40,18 @@ interface VolunteerFormErrors {
 }
 
 const VolunteerForm = () => {
-  const searchParams = useSearchParams();
-  const project_id = searchParams.get("project_id");
-  const volunteer_id = searchParams.get("volunteer_id");
+  const { selectedProject } = useProjectStore();
+  const { selectedVolunteer } = useVolunteerStore();
+
   const router = useRouter();
+
+  const volunteer_id = useMemo(() => {
+    return selectedVolunteer?.id;
+  }, [selectedVolunteer]);
+
+  const projectId = useMemo(() => {
+    return selectedProject?.id;
+  }, [selectedProject]);
 
   const toast = useRef<Toast | null>(null);
 
@@ -137,7 +152,7 @@ const VolunteerForm = () => {
 
     setLoading(true);
 
-    if (!project_id) return;
+    if (!projectId) return;
 
     try {
       const payload = {
@@ -148,7 +163,7 @@ const VolunteerForm = () => {
         weight: formData.weight,
         height: formData.height,
         phone: formData.phone,
-        project_id: project_id,
+        project_id: projectId,
       };
 
       const url = isEditMode

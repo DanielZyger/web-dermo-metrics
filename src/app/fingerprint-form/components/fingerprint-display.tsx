@@ -57,27 +57,6 @@ const FingerprintDisplay = ({
     viewMode === "raw" ? fingerData?.image_data : fingerData?.image_filtered;
   const fingerName = fingerParse[finger];
 
-  const handleRemove = () => {
-    setFormData((prev) => ({
-      ...prev,
-      [hand]: {
-        ...prev[hand],
-        [finger]: {
-          ...prev[hand]?.[finger],
-          image_data: undefined,
-          image_filtered: undefined,
-        },
-      },
-    }));
-
-    toast.current?.show({
-      severity: "info",
-      summary: "Removido",
-      detail: `Digital ${fingerName} removida`,
-      life: 3000,
-    });
-  };
-
   const handleReplace = () => {
     setFormData((prev) => ({
       ...prev,
@@ -345,7 +324,6 @@ const FingerprintDisplay = ({
               />
             </div>
 
-            {/* Botões de ação */}
             <div
               style={{
                 display: "flex",
