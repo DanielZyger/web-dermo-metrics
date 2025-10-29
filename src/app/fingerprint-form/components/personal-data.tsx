@@ -74,14 +74,13 @@ const PersonalDataForm = () => {
         </div>
       </div>
       <Card title="Dados Pessoais" style={{ padding: 10, marginBottom: 10 }}>
-        <div style={{ padding: "20px 0" }}>
+        <div style={{ padding: "15px 0" }}>
           {/* Grid de informações principais */}
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-              gap: "10px",
-              marginBottom: "32px",
+              marginBottom: "10px",
             }}
           >
             <div>
@@ -100,7 +99,7 @@ const PersonalDataForm = () => {
               </label>
               <span
                 style={{
-                  fontSize: "20px",
+                  fontSize: "15px",
                   fontWeight: "600",
                   color: "#1e293b",
                 }}
@@ -125,7 +124,7 @@ const PersonalDataForm = () => {
               </label>
               <span
                 style={{
-                  fontSize: "20px",
+                  fontSize: "15px",
                   fontWeight: "600",
                   color: "#1e293b",
                 }}
@@ -150,7 +149,7 @@ const PersonalDataForm = () => {
               </label>
               <span
                 style={{
-                  fontSize: "20px",
+                  fontSize: "15px",
                   fontWeight: "600",
                   color: "#1e293b",
                 }}
@@ -175,7 +174,7 @@ const PersonalDataForm = () => {
               </label>
               <span
                 style={{
-                  fontSize: "20px",
+                  fontSize: "15px",
                   fontWeight: "600",
                   color: "#1e293b",
                 }}
@@ -200,7 +199,7 @@ const PersonalDataForm = () => {
               </label>
               <span
                 style={{
-                  fontSize: "20px",
+                  fontSize: "15px",
                   fontWeight: "600",
                   color: "#1e293b",
                 }}
@@ -225,7 +224,7 @@ const PersonalDataForm = () => {
               </label>
               <span
                 style={{
-                  fontSize: "20px",
+                  fontSize: "15px",
                   fontWeight: "600",
                   color: "#1e293b",
                 }}
@@ -257,7 +256,7 @@ const PersonalDataForm = () => {
               </label>
               <p
                 style={{
-                  fontSize: "16px",
+                  fontSize: "15px",
                   lineHeight: "1.6",
                   color: "#475569",
                   margin: 0,
