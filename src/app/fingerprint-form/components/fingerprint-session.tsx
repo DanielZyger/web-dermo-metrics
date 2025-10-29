@@ -3,13 +3,14 @@
 import { Card } from "primereact/card";
 import FingerprintUpload from "./fingerprint-upload";
 import { FingerKey, fingerParse } from "@/app/utils/constants";
-import { Dispatch, RefObject, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, RefObject, SetStateAction, useState } from "react";
 import { Toast } from "primereact/toast";
 import { FormDataFingerprint } from "@/app/utils/types/fingerprint";
 import FingerprintDisplay from "./fingerprint-display";
 
-// TODO ajustar esse type aqui
-const fingers: FingerKey[] = Object.keys(fingerParse);
+const fingers = Object.keys(fingerParse).filter((key): key is FingerKey =>
+  ["thumb", "index", "middle", "ring", "pinky"].includes(key),
+);
 
 const FingerprintSession = ({
   formData,

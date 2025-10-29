@@ -235,7 +235,6 @@ const PersonalDataForm = () => {
             </div>
           </div>
 
-          {/* Seção de observações separada */}
           {volunteer.description && (
             <div
               style={{

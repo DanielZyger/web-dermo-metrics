@@ -3,15 +3,8 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { InputNumber } from "primereact/inputnumber";
-import { InputTextarea } from "primereact/inputtextarea";
 import { FingerKey, fingerParse } from "@/app/utils/constants";
-import {
-  Dispatch,
-  RefObject,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, RefObject, SetStateAction, useState } from "react";
 import { Toast } from "primereact/toast";
 import { FormDataFingerprint } from "@/app/utils/types/fingerprint";
 import Image from "next/image";
@@ -33,6 +26,13 @@ type FingerprintDisplayProps = {
   viewMode: "raw" | "filtered";
 };
 
+const patternOptions = [
+  { label: "Arco", value: PatternEnum.ARCH },
+  { label: "Presilha", value: PatternEnum.LOOP },
+  { label: "Verticilo", value: PatternEnum.WHORL },
+  { label: "Verticilo Duplo", value: PatternEnum.DOUBLE_WHORL },
+];
+
 const FingerprintDisplay = ({
   hand,
   finger,
@@ -44,19 +44,12 @@ const FingerprintDisplay = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [patternType, setPatternType] = useState<PatternEnum | null>(null);
   const [delta, setDelta] = useState<number | null>(null);
-  const [notes, setNotes] = useState<string>("");
+  const [numberOflines, setNumberOflines] = useState<number | null>(null);
 
   const fingerData = formData[hand]?.[finger];
   const imageToShow =
     viewMode === "raw" ? fingerData?.image_data : fingerData?.image_filtered;
   const fingerName = fingerParse[finger];
-
-  const patternOptions = [
-    { label: "Arco", value: PatternEnum.ARCH },
-    { label: "Presilha", value: PatternEnum.LOOP },
-    { label: "Verticilo", value: PatternEnum.WHORL },
-    { label: "Verticilo Duplo", value: PatternEnum.DOUBLE_WHORL },
-  ];
 
   const handleRemove = () => {
     setFormData((prev) => ({
@@ -103,7 +96,7 @@ const FingerprintDisplay = ({
           ...prev[hand]?.[finger],
           pattern_type: patternType,
           delta: delta,
-          notes: notes,
+          numberOflines: numberOflines,
         },
       },
     }));
@@ -180,7 +173,7 @@ const FingerprintDisplay = ({
           <i className="pi pi-times" style={{ fontSize: "12px" }} />
         </button>
 
-        {imageToShow ? (
+        {imageToShow && (
           <div
             onClick={openModal}
             style={{
@@ -237,30 +230,6 @@ const FingerprintDisplay = ({
                 }}
               />
             </div>
-          </div>
-        ) : (
-          <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#9ca3af",
-              fontSize: "12px",
-              backgroundColor: "#f9fafb",
-            }}
-          >
-            <i
-              className="pi pi-image"
-              style={{ fontSize: "24px", marginBottom: "8px" }}
-            />
-            <span style={{ textAlign: "center" }}>
-              {viewMode === "raw" ? "Imagem original" : "Imagem filtrada"}
-              <br />
-              não disponível
-            </span>
           </div>
         )}
       </Card>
@@ -353,12 +322,12 @@ const FingerprintDisplay = ({
                   fontSize: "14px",
                 }}
               >
-                Delta (contagem)
+                Número de deltas
               </label>
               <InputNumber
                 value={delta}
-                onValueChange={(e) => setDelta(e.value)}
-                placeholder="Digite a contagem"
+                onValueChange={(e) => setDelta(e.value ?? null)}
+                placeholder="Digite o número de deltas"
                 inputStyle={{ padding: 5 }}
                 style={{ width: "100%", padding: 5 }}
                 min={0}
@@ -373,30 +342,17 @@ const FingerprintDisplay = ({
                   fontWeight: "600",
                   color: "#374151",
                   fontSize: "14px",
-                  padding: 5,
                 }}
               >
-                Observações
+                Número de linhas
               </label>
-              <InputTextarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Digite suas observações..."
-                rows={6}
-                style={{ width: "100%", padding: 5, resize: "vertical" }}
-              />
-            </div>
-
-            <div>
-              <Button
-                label="Quantificar imagem"
-                onClick={quantifyImage}
-                style={{
-                  flex: 1,
-                  width: "100%",
-                  padding: 10,
-                  backgroundColor: "green",
-                }}
+              <InputNumber
+                value={numberOflines}
+                onValueChange={(e) => setNumberOflines(e.value ?? null)}
+                placeholder="Digite o número de linhas"
+                inputStyle={{ padding: 5 }}
+                style={{ width: "100%", padding: 5 }}
+                min={0}
               />
             </div>
 
