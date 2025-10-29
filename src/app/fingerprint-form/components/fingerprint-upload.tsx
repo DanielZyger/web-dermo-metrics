@@ -1,18 +1,12 @@
 "use client";
 
-import {
-  useState,
-  useRef,
-  RefObject,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-} from "react";
-import { FileUpload } from "primereact/fileupload";
+import { useRef, RefObject, Dispatch, SetStateAction, useMemo } from "react";
+import { FileUpload, FileUploadSelectEvent } from "primereact/fileupload";
 import { FingerKey, fingerParse, HandKey } from "@/app/utils/constants";
 import Image from "next/image";
 import { Toast } from "primereact/toast";
 import { FormDataFingerprint } from "@/app/utils/types/fingerprint";
+import { isString } from "lodash";
 
 const FingerprintUpload = ({
   hand,
@@ -22,33 +16,26 @@ const FingerprintUpload = ({
   toast,
 }: FingerprintUploadParams) => {
   const fingerData = formData[hand][finger];
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileUploadRef = useRef<FileUpload>(null);
 
-  const handleFileSelect = (e) => {
+  const imagePreview = useMemo(() => {
+    if (isString(fingerData.image_data) || !fingerData.image_data) return;
+
+    return URL.createObjectURL(fingerData.image_data);
+  }, [fingerData.image_data]);
+
+  const handleFileSelect = (e: FileUploadSelectEvent) => {
     const files = e.files;
     if (files && files.length > 0) {
       const file = files[0];
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (!event.target || !event.target.result) return;
-        // TODO AJUSTAR ESSE ERRO AQUI
-        setImagePreview(event.target?.result);
-      };
-      reader.readAsDataURL(file);
 
       setFormData((prev) => ({
         ...prev,
         [hand]: {
           ...prev[hand],
           [finger]: {
-            ...(prev[hand][finger] || {
-              image_data: null,
-              image_filtered: null,
-              file: null,
-            }),
-            file: file,
+            image_data: file, // Armazena o File para submit
+            image_filtered: null,
           },
         },
       }));
@@ -66,10 +53,12 @@ const FingerprintUpload = ({
       ...prev,
       [hand]: {
         ...prev[hand],
-        [finger]: { image_data: null, image_filtered: null, file: null },
+        [finger]: {
+          image_data: null,
+          image_filtered: null,
+        },
       },
     }));
-    setImagePreview(null);
 
     // Limpar o FileUpload
     if (fileUploadRef.current) {
@@ -102,7 +91,7 @@ const FingerprintUpload = ({
       </label>
 
       <div style={{ position: "relative" }}>
-        {!fingerData?.file ? (
+        {!fingerData?.image_data ? (
           <div className="file-upload" onClick={triggerFileSelect}>
             <i
               className="pi pi-plus"
@@ -163,13 +152,13 @@ const FingerprintUpload = ({
                   style={{ fontSize: "24px", color: "#10b981" }}
                 />
                 <small style={{ color: "#10b981", marginTop: "4px" }}>
-                  {fingerData.name}
+                  Carregando...
                 </small>
               </div>
             )}
 
             <button onClick={removeImage} className="remove-file-button">
-              <i className="pi pi-times" />
+              <i className="pi pi-times" style={{ fontSize: "12px" }} />
             </button>
           </div>
         )}

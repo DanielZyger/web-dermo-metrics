@@ -24,7 +24,7 @@ const FingerprintSession = ({
     finger: FingerKey,
   ) => {
     const fingerData = formData[hand]?.[finger];
-    return !!(fingerData?.image_data || fingerData?.image_filtered);
+    return !!fingerData?.image_filtered;
   };
 
   return (
@@ -102,6 +102,7 @@ const FingerprintSession = ({
                 />
               ) : (
                 <FingerprintUpload
+                  key={`left_${finger}`}
                   hand="leftHand"
                   finger={finger}
                   formData={formData}
@@ -141,6 +142,7 @@ const FingerprintSession = ({
             <div key={`right-${finger}`} style={{ flex: 1 }}>
               {hasFingerprint("rightHand", finger) ? (
                 <FingerprintDisplay
+                  key={`right_${finger}`}
                   hand="rightHand"
                   finger={finger}
                   formData={formData}

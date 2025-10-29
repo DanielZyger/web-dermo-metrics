@@ -6,14 +6,14 @@ import { Toast } from "primereact/toast";
 import Sidebar from "../components/sidebar";
 import PersonalDataForm from "./components/personal-data";
 import FingerprintSession from "./components/fingerprint-session";
-import { API_BASE_URL, FingerKey, HandEnum } from "../utils/constants";
-import {
-  FingerprintCreatePayload,
-  FormDataFingerprint,
-} from "../utils/types/fingerprint";
+import { FormDataFingerprint } from "../utils/types/fingerprint";
 import { Volunteer } from "../utils/types/volunteer";
 import { useSearchParams } from "next/navigation";
 import { useApiItem } from "../hooks/use-api-item";
+import {
+  submitFingerprints,
+  transformFingerprintsToFormData,
+} from "./utils/fingerprint-api";
 
 export default function FingerprintForm() {
   const toast = useRef<Toast>(null);
@@ -25,181 +25,96 @@ export default function FingerprintForm() {
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [volunteerUpdated, setVolunteerUpdated] = useState(false);
 
-  const fingerKeys: FingerKey[] = useMemo(() => {
-    return ["thumb", "index", "middle", "ring", "pinky"];
-  }, []);
-
-  const emptyHand = useMemo(() => {
-    return {
-      thumb: { image_data: null, image_filtered: null, file: null },
-      index: { image_data: null, image_filtered: null, file: null },
-      middle: { image_data: null, image_filtered: null, file: null },
-      ring: { image_data: null, image_filtered: null, file: null },
-      pinky: { image_data: null, image_filtered: null, file: null },
-    };
-  }, []);
-
-  const emptyFormData: FormDataFingerprint = useMemo(() => {
-    return {
-      notes: "",
-      leftHand: structuredClone(emptyHand),
-      rightHand: structuredClone(emptyHand),
-    };
-  }, [emptyHand]);
-
-  const buildFormData = useCallback(
-    (v: Volunteer | null): FormDataFingerprint => {
-      if (!v?.fingerprints?.length) return emptyFormData;
-
-      const form = structuredClone(emptyFormData);
-
-      v.fingerprints.forEach((fp) => {
-        const hand = fp.hand === "left" ? "leftHand" : "rightHand";
-        const finger = fp.finger as FingerKey;
-
-        if (fp.image_data && fp.image_filtered) {
-          form[hand][finger] = {
-            image_data: fp.image_data,
-            image_filtered: fp.image_filtered,
-            file: null,
-          };
-        }
-      });
-
-      return form;
+  const [formData, setFormData] = useState<FormDataFingerprint>({
+    leftHand: {
+      thumb: { image_data: "", image_filtered: null },
+      index: { image_data: "", image_filtered: null },
+      middle: { image_data: "", image_filtered: null },
+      ring: { image_data: "", image_filtered: null },
+      pinky: { image_data: "", image_filtered: null },
     },
-    [emptyFormData],
-  );
+    rightHand: {
+      thumb: { image_data: "", image_filtered: null },
+      index: { image_data: "", image_filtered: null },
+      middle: { image_data: "", image_filtered: null },
+      ring: { image_data: "", image_filtered: null },
+      pinky: { image_data: "", image_filtered: null },
+    },
+    notes: "",
+  });
 
-  const [formData, setFormData] = useState<FormDataFingerprint>(
-    buildFormData(volunteer),
-  );
-
-  /** Atualiza o formData ao carregar o voluntário */
   useEffect(() => {
-    setFormData(buildFormData(volunteer));
-  }, [volunteer, buildFormData]);
+    if (volunteer?.fingerprints && volunteer.fingerprints.length > 0) {
+      const transformedData = transformFingerprintsToFormData(
+        volunteer.fingerprints,
+      );
+      setFormData(transformedData);
 
-  /** Recarrega dados após atualização */
-  useEffect(() => {
-    if (volunteerUpdated) refetch();
-  }, [volunteerUpdated, refetch]);
-
-  /** Cria os registros de digitais a partir do estado atual */
-  const createFingerprintRecords =
-    useCallback((): FingerprintCreatePayload[] => {
-      const records: FingerprintCreatePayload[] = [];
-
-      fingerKeys.forEach((finger) => {
-        const leftFile = formData.leftHand[finger]?.file;
-        const rightFile = formData.rightHand[finger]?.file;
-
-        if (leftFile) {
-          records.push({
-            volunteer_id: volunteerId,
-            hand: HandEnum.LEFT,
-            finger,
-            notes: "MÃO ESQUERDA",
-            image_data: leftFile,
-          });
-        }
-
-        if (rightFile) {
-          records.push({
-            volunteer_id: volunteerId,
-            hand: HandEnum.RIGHT,
-            finger,
-            notes: "MÃO DIREITA",
-            image_data: rightFile,
-          });
-        }
+      toast.current?.show({
+        severity: "info",
+        summary: "Digitais Carregadas",
+        detail: `${volunteer.fingerprints.length} digital(is) carregada(s)`,
+        life: 3000,
       });
-
-      return records;
-    }, [formData, fingerKeys, volunteerId]);
-
-  /** Exibe mensagens */
-  const showToast = (
-    severity: "success" | "error",
-    summary: string,
-    detail: string,
-  ) => {
-    toast.current?.show({
-      severity,
-      summary,
-      detail,
-      life: 5000,
-    });
-  };
-
-  /** Envia as digitais para o backend */
-  const saveFingerprintRecords = async (
-    records: FingerprintCreatePayload[],
-  ) => {
-    const requests = records.map(async (record) => {
-      if (!record.image_data) throw new Error("Imagem ausente no registro");
-
-      const fd = new FormData();
-      fd.append("image_data", record.image_data);
-
-      Object.entries(record).forEach(([key, value]) => {
-        if (key !== "image_data" && value !== undefined && value !== null) {
-          fd.append(key, value.toString());
-        }
-      });
-
-      const res = await fetch(`${API_BASE_URL}/fingerprints`, {
-        method: "POST",
-        body: fd,
-      });
-
-      if (!res.ok) {
-        throw new Error(`Erro ao salvar registro: ${res.statusText}`);
-      }
-
-      return res.json();
-    });
-
-    return Promise.all(requests);
-  };
-
-  /** Manipula o envio do formulário */
-  const handleSubmit = async () => {
-    if (!volunteerId) {
-      showToast("error", "Erro de Validação", "Voluntário não encontrado.");
-      return;
     }
+  }, [volunteer?.fingerprints]);
 
+  const handleSubmit = async () => {
     setIsSubmitting(true);
 
     try {
-      const records = createFingerprintRecords();
+      // Submete as digitais
+      const { success, errors } = await submitFingerprints(
+        formData,
+        volunteerId,
+      );
 
-      if (!records.length) {
-        showToast("error", "Erro", "Nenhuma digital selecionada para envio.");
-        return;
+      if (success > 0) {
+        toast.current?.show({
+          severity: "success",
+          summary: "Sucesso",
+          detail: `${success} digital(is) enviada(s) com sucesso!`,
+          life: 3000,
+        });
+
+        // Aguarda processamento
+        await refetch();
+
+        // Recarrega as digitais para pegar as versões processadas
+
+        toast.current?.show({
+          severity: "success",
+          summary: "Processamento Concluído",
+          detail: "Digitais processadas foram carregadas!",
+          life: 3000,
+        });
       }
 
-      await saveFingerprintRecords(records);
-
-      showToast(
-        "success",
-        "Sucesso",
-        `${records.length} registro(s) de digitais salvos com sucesso!`,
-      );
-      setVolunteerUpdated(true);
-    } catch (err) {
-      console.error("Erro ao salvar digitais:", err);
-      showToast(
-        "error",
-        "Erro",
-        "Ocorreu um erro ao salvar as digitais. Tente novamente.",
-      );
+      if (errors > 0) {
+        toast.current?.show({
+          severity: "error",
+          summary: "Erro",
+          detail: `Falha ao enviar ${errors} digital(is)`,
+          life: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao submeter digitais:", error);
+      toast.current?.show({
+        severity: "error",
+        summary: "Erro",
+        detail: "Erro inesperado ao processar digitais",
+        life: 3000,
+      });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleGoBack = () => {
+    // validar se tem alguma fingerprint adicionada
+    // alert informando que os dados inseridos vão ser limpos se ele voltar agora
   };
 
   return (
@@ -240,6 +155,7 @@ export default function FingerprintForm() {
               outlined
               severity="secondary"
               disabled={isSubmitting}
+              onClick={handleGoBack}
               style={{
                 padding: "12px 24px",
                 fontSize: "14px",

@@ -4,7 +4,13 @@ import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { InputNumber } from "primereact/inputnumber";
 import { FingerKey, fingerParse } from "@/app/utils/constants";
-import { Dispatch, RefObject, SetStateAction, useState } from "react";
+import {
+  Dispatch,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import { Toast } from "primereact/toast";
 import { FormDataFingerprint } from "@/app/utils/types/fingerprint";
 import Image from "next/image";
@@ -122,6 +128,10 @@ const FingerprintDisplay = ({
     setModalVisible(true);
   };
 
+  useEffect(() => {
+    console.log("DISPLAY", fingerData);
+  }, [fingerData]);
+
   return (
     <>
       <label
@@ -148,28 +158,7 @@ const FingerprintDisplay = ({
           position: "relative",
         }}
       >
-        <button
-          onClick={handleReplace}
-          style={{
-            position: "absolute",
-            top: "8px",
-            right: "8px",
-            fontSize: "12px",
-            padding: "4px",
-            height: "24px",
-            width: "24px",
-            border: "1px solid #6366f1",
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-            color: "#6366f1",
-            borderRadius: "50%",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 10,
-            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-          }}
-        >
+        <button onClick={handleReplace} className="remove-file-button">
           <i className="pi pi-times" style={{ fontSize: "12px" }} />
         </button>
 
