@@ -3,17 +3,31 @@
 import "./styles.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Sidebar from "../components/sidebar";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { API_BASE_URL } from "../utils/constants";
 import { Toast } from "primereact/toast";
 import { useUserStore } from "@/store/use-user-store";
 import { useProjectStore } from "@/store/use-project-store";
+import { useApiItem } from "../hooks/use-api-item";
+import { User } from "../utils/types/user";
 
 const CreateProjectPage = () => {
-  const { user } = useUserStore();
   const { selectedProject } = useProjectStore();
   const toast = useRef<Toast | null>(null);
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const user_id = searchParams.get("user_id");
+
+  const { user, setUser } = useUserStore();
+  const { data: apiUser } = useApiItem<User>(`/users/${user_id}`);
+
+  useEffect(() => {
+    if (apiUser) {
+      setUser(apiUser);
+    }
+  }, [apiUser, setUser]);
+
   const projectId = useMemo(() => {
     return selectedProject?.id;
   }, [selectedProject]);
