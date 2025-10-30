@@ -22,6 +22,7 @@ import Image from "next/image";
 import { updateFingerprints } from "../utils/fingerprint-api";
 import { useVolunteerStore } from "@/store/use-volunteer-store";
 import { useApiItem } from "@/app/hooks/use-api-item";
+import FingerprintImage from "./fingerprint-image";
 
 type FingerprintDisplayProps = {
   hand: "leftHand" | "rightHand";
@@ -256,17 +257,10 @@ const FingerprintDisplay = ({
             }}
           >
             {imageToShow && (
-              <Image
-                src={`data:image/jpeg;base64,${imageToShow}`}
-                width={700}
-                height={700}
-                alt={`${fingerName} - ${viewMode === "raw" ? "Original" : "Filtrada"}`}
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                  objectFit: "contain",
-                  borderRadius: "8px",
-                }}
+              <FingerprintImage
+                imageToShow={imageToShow}
+                fingerprint={correctFingerprint}
+                viewMode={viewMode}
               />
             )}
           </div>
