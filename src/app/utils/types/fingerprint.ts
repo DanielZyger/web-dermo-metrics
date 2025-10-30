@@ -10,12 +10,13 @@ export type FingerprintCreatePayload = {
 
 type FingerInputType = {
   image_data: string | Blob;
-  image_filtered: string | null;
+  image_filtered: string | Blob | null;
 };
 
 type Hand = Record<FingerKey, FingerInputType>;
 
 export type FormDataFingerprint = {
+  id?: number;
   notes: string;
   leftHand: Hand;
   rightHand: Hand;

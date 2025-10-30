@@ -3,25 +3,24 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { InputNumber } from "primereact/inputnumber";
-import { FingerKey, fingerParse } from "@/app/utils/constants";
+import { FingerKey, fingerParse, PatternEnum } from "@/app/utils/constants";
 import {
   Dispatch,
   RefObject,
   SetStateAction,
+  useCallback,
   useEffect,
   useState,
 } from "react";
 import { Toast } from "primereact/toast";
-import { FormDataFingerprint } from "@/app/utils/types/fingerprint";
+import {
+  Fingerprint,
+  FormDataFingerprint,
+} from "@/app/utils/types/fingerprint";
 import Image from "next/image";
-
-// Enum para os tipos de padrão (ajuste conforme sua definição)
-enum PatternEnum {
-  ARCH = "arch",
-  LOOP = "loop",
-  WHORL = "whorl",
-  DOUBLE_WHORL = "double_whorl",
-}
+import { updateFingerprints } from "../utils/fingerprint-api";
+import { useVolunteerStore } from "@/store/use-volunteer-store";
+import { useApiItem } from "@/app/hooks/use-api-item";
 
 type FingerprintDisplayProps = {
   hand: "leftHand" | "rightHand";
@@ -48,9 +47,14 @@ const FingerprintDisplay = ({
   viewMode,
 }: FingerprintDisplayProps) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const { selectedVolunteer } = useVolunteerStore();
   const [patternType, setPatternType] = useState<PatternEnum | null>(null);
   const [delta, setDelta] = useState<number | null>(null);
   const [numberOflines, setNumberOflines] = useState<number | null>(null);
+
+  const { data: fingerprint, refetch } = useApiItem<Fingerprint>(
+    `/fingerprints/${formData?.id}`,
+  );
 
   const fingerData = formData[hand]?.[finger];
   const imageToShow =
@@ -71,45 +75,50 @@ const FingerprintDisplay = ({
     }));
   };
 
-  const handleSaveAnalysis = () => {
-    // Salva os dados da análise no formData
-    setFormData((prev) => ({
-      ...prev,
-      [hand]: {
-        ...prev[hand],
-        [finger]: {
-          ...prev[hand]?.[finger],
-          pattern_type: patternType,
-          delta: delta,
-          numberOflines: numberOflines,
-        },
-      },
-    }));
+  const handleSaveAnalysis = useCallback(async () => {
+    if (!selectedVolunteer) return;
+    await updateFingerprints({
+      delta: delta,
+      pattern_type: patternType,
+      volunteerId: selectedVolunteer?.id,
+      numberOflines: numberOflines,
+      finger: finger,
+      formData: formData,
+      hand: hand,
+      notes: formData.notes,
+    });
 
     toast.current?.show({
       severity: "success",
       summary: "Análise Salva",
-      detail: `Análise da digital ${fingerName} salva com sucesso`,
+      detail: `Análise da digital ${fingerName} atualizada com sucesso`,
       life: 3000,
     });
 
     setModalVisible(false);
-  };
+  }, [
+    delta,
+    finger,
+    fingerName,
+    formData,
+    hand,
+    numberOflines,
+    patternType,
+    selectedVolunteer,
+    toast,
+  ]);
 
-  const openModal = () => {
-    // Carrega dados existentes se houver
-    const existingData = formData[hand]?.[finger];
-    if (existingData) {
-      //   setPatternType(existingData.pattern_type || null);
-      //   setDelta(existingData.delta || null);
-      //   setNotes(existingData.notes || "");
+  const openModal = useCallback(async () => {
+    if (fingerprint) {
+      setPatternType(fingerprint.pattern_type as PatternEnum);
+      setDelta(fingerprint.delta || null);
+      formData.notes = fingerprint.notes || "";
+    } else {
+      refetch();
     }
-    setModalVisible(true);
-  };
 
-  useEffect(() => {
-    console.log("DISPLAY", fingerData);
-  }, [fingerData]);
+    setModalVisible(true);
+  }, [fingerprint, formData, refetch]);
 
   return (
     <>

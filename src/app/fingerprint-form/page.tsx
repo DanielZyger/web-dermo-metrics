@@ -80,10 +80,7 @@ export default function FingerprintForm() {
           life: 3000,
         });
 
-        // Aguarda processamento
         await refetch();
-
-        // Recarrega as digitais para pegar as versões processadas
 
         toast.current?.show({
           severity: "success",

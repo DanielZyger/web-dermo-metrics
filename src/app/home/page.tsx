@@ -39,7 +39,7 @@ export default function HomePage() {
 
   useEffect(() => {
     refetch();
-  }, [selectedProject, refetch]);
+  }, [selectedProject?.id, refetch]);
 
   if (!user || loadingVolunteers) {
     return (

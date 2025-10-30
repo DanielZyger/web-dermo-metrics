@@ -19,6 +19,13 @@ export const statusParse = {
   completed: "Completo",
 };
 
+export enum PatternEnum {
+  ARCH = "arch",
+  LOOP = "loop",
+  WHORL = "whorl",
+  DOUBLE_WHORL = "double_whorl",
+}
+
 export enum UserRoles {
   ADMIN = "admin",
   RESEARCHER = "researcher",

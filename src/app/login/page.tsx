@@ -1,15 +1,21 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { API_BASE_URL } from "../utils/constants";
 import { redirect } from "next/navigation";
+import { useProjectStore } from "@/store/use-project-store";
+import { useVolunteerStore } from "@/store/use-volunteer-store";
+import { useUserStore } from "@/store/use-user-store";
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const toast = useRef<Toast | null>(null);
+  const { clearSelectedProject } = useProjectStore();
+  const { clearSelectedVolunteer } = useVolunteerStore();
+  const { clearUser } = useUserStore();
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -37,6 +43,12 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    clearSelectedProject();
+    clearSelectedVolunteer();
+    clearUser();
+  }, []);
 
   const GoogleIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24">
