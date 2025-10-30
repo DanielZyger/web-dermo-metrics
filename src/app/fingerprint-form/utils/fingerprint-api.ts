@@ -1,5 +1,3 @@
-// utils/fingerprintApi.ts
-
 import {
   Fingerprint,
   FormDataFingerprint,
@@ -70,6 +68,8 @@ export async function updateFingerprints({
   hand,
   delta,
   pattern_type,
+  id,
+  numberOflines,
   notes,
   finger,
   formData,
@@ -78,7 +78,7 @@ export async function updateFingerprints({
   let errorCount = 0;
 
   const fingerData = formData[hand][finger];
-  if (!formData.id) {
+  if (!id) {
     return { success: 0, errors: 1 };
   }
   const submitData = new FormData();
@@ -88,6 +88,9 @@ export async function updateFingerprints({
   submitData.append("hand", hand === "leftHand" ? "left" : "right");
   submitData.append("finger", finger);
 
+  if (numberOflines !== undefined) {
+    submitData.append("number_of_lines", String(numberOflines));
+  }
   if (fingerData.image_filtered) {
     submitData.append("image_filtered", fingerData.image_filtered);
   }
@@ -103,13 +106,10 @@ export async function updateFingerprints({
   }
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/fingerprints/${formData.id}`,
-      {
-        method: "PUT",
-        body: submitData,
-      },
-    );
+    const response = await fetch(`${API_BASE_URL}/fingerprints/${id}`, {
+      method: "PUT",
+      body: submitData,
+    });
 
     if (response.ok) {
       successCount++;
@@ -173,5 +173,6 @@ type UpdateFingerprintParams = {
   pattern_type: PatternEnum | null;
   delta: number | null;
   notes?: string;
-  numberOflines: number | null;
+  id?: number;
+  numberOflines?: number;
 };

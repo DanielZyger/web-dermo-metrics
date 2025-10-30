@@ -6,7 +6,7 @@ import { Toast } from "primereact/toast";
 import Sidebar from "../components/sidebar";
 import PersonalDataForm from "./components/personal-data";
 import FingerprintSession from "./components/fingerprint-session";
-import { FormDataFingerprint } from "../utils/types/fingerprint";
+import { Fingerprint, FormDataFingerprint } from "../utils/types/fingerprint";
 import { Volunteer } from "../utils/types/volunteer";
 import { useRouter } from "next/navigation";
 import { useApiItem } from "../hooks/use-api-item";
@@ -26,6 +26,7 @@ export default function FingerprintForm() {
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fingerprint, setFingerprint] = useState<Fingerprint[]>([]);
 
   const [formData, setFormData] = useState<FormDataFingerprint>({
     leftHand: {
@@ -51,6 +52,7 @@ export default function FingerprintForm() {
         volunteer.fingerprints,
       );
       setFormData(transformedData);
+      setFingerprint(volunteer.fingerprints);
 
       toast.current?.show({
         severity: "info",
@@ -148,6 +150,7 @@ export default function FingerprintForm() {
           <PersonalDataForm />
 
           <FingerprintSession
+            fingerprint={fingerprint}
             formData={formData}
             setFormData={setFormData}
             toast={toast}

@@ -10,6 +10,7 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { Toast } from "primereact/toast";
@@ -24,6 +25,7 @@ import { useApiItem } from "@/app/hooks/use-api-item";
 
 type FingerprintDisplayProps = {
   hand: "leftHand" | "rightHand";
+  fingerprints: Fingerprint[];
   finger: FingerKey;
   formData: FormDataFingerprint;
   setFormData: Dispatch<SetStateAction<FormDataFingerprint>>;
@@ -42,6 +44,7 @@ const FingerprintDisplay = ({
   hand,
   finger,
   formData,
+  fingerprints,
   setFormData,
   toast,
   viewMode,
@@ -50,10 +53,19 @@ const FingerprintDisplay = ({
   const { selectedVolunteer } = useVolunteerStore();
   const [patternType, setPatternType] = useState<PatternEnum | null>(null);
   const [delta, setDelta] = useState<number | null>(null);
-  const [numberOflines, setNumberOflines] = useState<number | null>(null);
+  const [numberOflines, setNumberOflines] = useState<number | undefined>();
 
-  const { data: fingerprint, refetch } = useApiItem<Fingerprint>(
-    `/fingerprints/${formData?.id}`,
+  const correctFingerprint = useMemo(() => {
+    if (!fingerprints || !fingerprints.length) return;
+    return fingerprints.find((fp) => {
+      const handLabel = hand === "leftHand" ? "left" : "right";
+      console.log("handLabel", fp.hand, handLabel, "-", hand);
+      return fp.hand === handLabel && fp.finger === finger;
+    });
+  }, [fingerprints, hand, finger]);
+
+  const { data: updatedFingerprint, refetch } = useApiItem<Fingerprint>(
+    `/fingerprints/${correctFingerprint?.id}`,
   );
 
   const fingerData = formData[hand]?.[finger];
@@ -84,6 +96,7 @@ const FingerprintDisplay = ({
       numberOflines: numberOflines,
       finger: finger,
       formData: formData,
+      id: correctFingerprint?.id,
       hand: hand,
       notes: formData.notes,
     });
@@ -98,6 +111,7 @@ const FingerprintDisplay = ({
     setModalVisible(false);
   }, [
     delta,
+    correctFingerprint,
     finger,
     fingerName,
     formData,
@@ -109,16 +123,16 @@ const FingerprintDisplay = ({
   ]);
 
   const openModal = useCallback(async () => {
-    if (fingerprint) {
-      setPatternType(fingerprint.pattern_type as PatternEnum);
-      setDelta(fingerprint.delta || null);
-      formData.notes = fingerprint.notes || "";
-    } else {
-      refetch();
+    await refetch();
+
+    if (updatedFingerprint) {
+      setPatternType(updatedFingerprint.pattern_type as PatternEnum);
+      setDelta(updatedFingerprint.delta || null);
+      setNumberOflines(updatedFingerprint.number_of_lines);
     }
 
     setModalVisible(true);
-  }, [fingerprint, formData, refetch]);
+  }, [updatedFingerprint, refetch]);
 
   return (
     <>
@@ -325,7 +339,7 @@ const FingerprintDisplay = ({
               </label>
               <InputNumber
                 value={numberOflines}
-                onValueChange={(e) => setNumberOflines(e.value ?? null)}
+                onValueChange={(e) => setNumberOflines(e.value ?? undefined)}
                 placeholder="Digite o número de linhas"
                 inputStyle={{ padding: 5 }}
                 style={{ width: "100%", padding: 5 }}

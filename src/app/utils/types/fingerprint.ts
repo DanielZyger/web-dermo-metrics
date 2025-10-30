@@ -25,6 +25,7 @@ export type FormDataFingerprint = {
 export type Fingerprint = {
   id: number;
   volunteer_id: number;
+  number_of_lines?: number;
   hand: HandEnum;
   finger: FingerKey;
   pattern_type: string | null;

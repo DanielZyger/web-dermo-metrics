@@ -5,7 +5,10 @@ import FingerprintUpload from "./fingerprint-upload";
 import { FingerKey, fingerParse } from "@/app/utils/constants";
 import { Dispatch, RefObject, SetStateAction, useState } from "react";
 import { Toast } from "primereact/toast";
-import { FormDataFingerprint } from "@/app/utils/types/fingerprint";
+import {
+  Fingerprint,
+  FormDataFingerprint,
+} from "@/app/utils/types/fingerprint";
 import FingerprintDisplay from "./fingerprint-display";
 
 const fingers = Object.keys(fingerParse).filter((key): key is FingerKey =>
@@ -14,6 +17,7 @@ const fingers = Object.keys(fingerParse).filter((key): key is FingerKey =>
 
 const FingerprintSession = ({
   formData,
+  fingerprint,
   setFormData,
   toast,
 }: FingerprintSessionParams) => {
@@ -93,6 +97,7 @@ const FingerprintSession = ({
             <div key={`left-${finger}`} style={{ flex: 1 }}>
               {hasFingerprint("leftHand", finger) ? (
                 <FingerprintDisplay
+                  fingerprints={fingerprint}
                   hand="leftHand"
                   finger={finger}
                   formData={formData}
@@ -143,6 +148,7 @@ const FingerprintSession = ({
               {hasFingerprint("rightHand", finger) ? (
                 <FingerprintDisplay
                   key={`right_${finger}`}
+                  fingerprints={fingerprint}
                   hand="rightHand"
                   finger={finger}
                   formData={formData}
@@ -173,4 +179,5 @@ type FingerprintSessionParams = {
   formData: FormDataFingerprint;
   setFormData: Dispatch<SetStateAction<FormDataFingerprint>>;
   toast: RefObject<Toast | null>;
+  fingerprint: Fingerprint[];
 };
