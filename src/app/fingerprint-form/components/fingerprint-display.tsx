@@ -260,7 +260,10 @@ const FingerprintDisplay = ({
               <FingerprintImage
                 imageToShow={imageToShow}
                 fingerprint={correctFingerprint}
+                setPatternType={setPatternType}
                 viewMode={viewMode}
+                setDelta={setDelta}
+                setNumberOflines={setNumberOflines}
               />
             )}
           </div>

@@ -1,7 +1,14 @@
-import { API_BASE_URL } from "@/app/utils/constants";
+import { API_BASE_URL, PatternEnum } from "@/app/utils/constants";
 import { Fingerprint } from "@/app/utils/types/fingerprint";
 import Image from "next/image";
-import { useState, useRef, FC, useEffect } from "react";
+import {
+  useState,
+  useRef,
+  FC,
+  useEffect,
+  SetStateAction,
+  Dispatch,
+} from "react";
 
 interface Point {
   x: number;
@@ -14,6 +21,9 @@ const FingerprintImage: FC<PropTypes> = ({
   imageToShow,
   fingerprint,
   viewMode,
+  setDelta,
+  setPatternType,
+  setNumberOflines,
 }) => {
   const [pointCore, setPointCore] = useState<Point>({ x: 100, y: 100 });
   const [pointDelta, setPointDelta] = useState<Point>({ x: 300, y: 200 });
@@ -74,7 +84,14 @@ const FingerprintImage: FC<PropTypes> = ({
         if (data?.cores?.length > 0) {
           setPointCore(data.cores[0]);
         }
+        if (data.ridge_counts) {
+          setNumberOflines(data.ridge_counts);
+        }
+        if (data.fingerprint_type) {
+          setPatternType(data.fingerprint_type);
+        }
         if (data?.deltas?.length > 0) {
+          setDelta(data.deltas.length);
           setPointDelta(data.deltas[0]);
         }
       } catch (error) {
@@ -83,7 +100,7 @@ const FingerprintImage: FC<PropTypes> = ({
     };
 
     fetchDetection();
-  }, [fingerprint]);
+  }, [fingerprint, setDelta, setNumberOflines, setPatternType]);
 
   return (
     <div
@@ -97,7 +114,17 @@ const FingerprintImage: FC<PropTypes> = ({
         cursor: dragging ? "grabbing" : "default",
       }}
     >
-      {/* Sua imagem */}
+      <div
+        style={{
+          flexDirection: "row",
+          display: "flex",
+          justifyContent: "space-between",
+          padding: 10,
+        }}
+      >
+        <h3 className="text-xl font-semibold text-gray-800">ULNA</h3>
+        <h3 className="text-xl font-semibold text-gray-800">RÁDIO</h3>
+      </div>
       <Image
         src={`data:image/jpeg;base64,${imageToShow}`}
         width={700}
@@ -194,6 +221,9 @@ interface PropTypes {
   imageToShow: Blob | string;
   fingerprint: Fingerprint | undefined;
   viewMode: string;
+  setDelta: Dispatch<SetStateAction<number | null>>;
+  setNumberOflines: Dispatch<SetStateAction<number | undefined>>;
+  setPatternType: (value: SetStateAction<PatternEnum | null>) => void;
 }
 
 export default FingerprintImage;
