@@ -1,6 +1,7 @@
 export const genderParse = {
   male: "Homem",
   female: "Mulher",
+  intersex: "Intersexo",
 };
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;

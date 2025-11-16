@@ -9,6 +9,7 @@ import { useDelete } from "../hooks/use-delete";
 import { Toast } from "primereact/toast";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/use-user-store";
+import { useProjectStore } from "@/store/use-project-store";
 
 const ProjectsDropdown = ({
   isCollapsed,
@@ -22,6 +23,7 @@ const ProjectsDropdown = ({
   const toast = useRef<Toast | null>(null);
   const menuRefs = useRef<{ [key: string]: OverlayPanel | null }>({});
   const [isProjectsExpanded, setIsProjectsExpanded] = useState(false);
+  const { clearSelectedProject } = useProjectStore();
 
   const { deleteItem, loading } = useDelete("/projects");
 
@@ -192,7 +194,10 @@ const ProjectsDropdown = ({
             loading={loading}
             size="small"
             iconPos="left"
-            onClick={() => router.push(`/create-project?user_id=${user?.id}`)}
+            onClick={() => {
+              clearSelectedProject();
+              return router.push("/create-project");
+            }}
           />
         </div>
       </div>

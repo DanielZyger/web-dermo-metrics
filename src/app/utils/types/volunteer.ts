@@ -4,7 +4,7 @@ export type Volunteer = {
   id: number;
   name: string;
   age: number;
-  gender: "male" | "female";
+  gender: "male" | "female" | "intersex";
   phone: string;
   description?: string;
   weight: number;

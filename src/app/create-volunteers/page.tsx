@@ -73,6 +73,7 @@ const VolunteerForm = () => {
   const genderOptions = [
     { label: "Masculino", value: "male" },
     { label: "Feminino", value: "female" },
+    { label: "Intersexo", value: "intersex" },
   ];
 
   const validateForm = (): boolean => {
@@ -87,7 +88,7 @@ const VolunteerForm = () => {
     }
 
     if (!formData.gender) {
-      newErrors.gender = "Gênero é obrigatório";
+      newErrors.gender = "Sexo é obrigatório";
     }
 
     if (!formData.phone.trim()) {
@@ -412,16 +413,16 @@ const VolunteerForm = () => {
                 </div>
 
                 <div>
-                  <label className="label">Gênero *</label>
+                  <label className="label">Sexo ao nascer *</label>
                   <Dropdown
                     value={formData.gender}
                     onChange={(e) => handleInputChange("gender", e.value)}
                     options={genderOptions}
-                    placeholder="Selecione o gênero"
+                    placeholder="Sexo ao nascer"
                     style={{
                       width: "100%",
+                      padding: "8px",
                     }}
-                    // TODO
                     inputStyle={{
                       padding: "16px",
                       backgroundColor: "#f9fafb",

@@ -11,10 +11,12 @@ import { Volunteer } from "../utils/types/volunteer";
 import { useProjectStore } from "../../store/use-project-store";
 import VolunteerTable from "../components/volunteer-table";
 import { useUserStore } from "@/store/use-user-store";
+import { useVolunteerStore } from "@/store/use-volunteer-store";
 
 export default function HomePage() {
   const { selectedProject, setSelectedProject } = useProjectStore();
   const router = useRouter();
+  const { clearSelectedVolunteer } = useVolunteerStore();
   const searchParams = useSearchParams();
   const user_id = searchParams.get("user_id");
 
@@ -124,9 +126,8 @@ export default function HomePage() {
                 style={{ padding: 10 }}
                 size="small"
                 onClick={() => {
-                  router.push(
-                    `/create-volunteers?user_id=${user?.id}&project_id=${selectedProject?.id}`,
-                  );
+                  clearSelectedVolunteer();
+                  router.push("/create-volunteers");
                 }}
               />
             </div>
