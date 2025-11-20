@@ -8,11 +8,11 @@ import { Volunteer } from "@/app/utils/types/volunteer";
 import { useVolunteerStore } from "@/store/use-volunteer-store";
 
 const PersonalDataForm = () => {
-  const { selectedVolunteer } = useVolunteerStore();
+  const { selectedVolunteerId } = useVolunteerStore();
   const router = useRouter();
 
   const { data: volunteer, loading } = useApiItem<Volunteer>(
-    `/volunteers/${selectedVolunteer?.id}`,
+    `/volunteers/${selectedVolunteerId}`,
   );
 
   const handleGoBack = () => {
@@ -35,7 +35,6 @@ const PersonalDataForm = () => {
 
   return (
     <>
-      {/* Botão de voltar */}
       <div style={{ textAlign: "left", marginBottom: "16px" }}>
         <div
           style={{

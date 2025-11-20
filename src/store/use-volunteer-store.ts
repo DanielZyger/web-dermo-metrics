@@ -1,23 +1,23 @@
-import { Volunteer } from "@/app/utils/types/volunteer";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 type VolunteerStore = {
-  selectedVolunteer?: Volunteer;
-  setSelectedVolunteer: (volunteer?: Volunteer) => void;
+  selectedVolunteerId: number | null;
+  setSelectedVolunteerId: (id: number | null) => void;
   clearSelectedVolunteer: () => void;
 };
 
 export const useVolunteerStore = create<VolunteerStore>()(
   persist(
     (set) => ({
-      selectedVolunteer: undefined,
-      setSelectedVolunteer: (volunteer) =>
-        set({ selectedVolunteer: volunteer }),
-      clearSelectedVolunteer: () => set({ selectedVolunteer: undefined }),
+      selectedVolunteerId: null,
+
+      setSelectedVolunteerId: (id) => set({ selectedVolunteerId: id }),
+
+      clearSelectedVolunteer: () => set({ selectedVolunteerId: null }),
     }),
     {
-      name: "volunteer-storage", // nome da chave no localStorage
+      name: "volunteer-storage", // só vai guardar o id
     },
   ),
 );

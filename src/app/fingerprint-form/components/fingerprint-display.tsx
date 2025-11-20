@@ -57,7 +57,7 @@ const FingerprintDisplay = ({
   viewMode,
 }: FingerprintDisplayProps) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const { selectedVolunteer } = useVolunteerStore();
+  const { selectedVolunteerId } = useVolunteerStore();
 
   const [patternType, setPatternType] = useState<PatternEnum | null>(null);
   const [number_deltas, setNumber_deltas] = useState<number | null>(null);
@@ -98,11 +98,11 @@ const FingerprintDisplay = ({
   };
 
   const handleSaveAnalysis = useCallback(async () => {
-    if (!selectedVolunteer || !correctFingerprint) return;
+    if (!selectedVolunteerId || !correctFingerprint) return;
 
     await updateFingerprints({
       id: correctFingerprint.id,
-      volunteerId: selectedVolunteer.id,
+      volunteerId: selectedVolunteerId,
       hand,
       finger,
       number_deltas,
@@ -145,7 +145,7 @@ const FingerprintDisplay = ({
     hand,
     numberOflines,
     patternType,
-    selectedVolunteer,
+    selectedVolunteerId,
     toast,
   ]);
 

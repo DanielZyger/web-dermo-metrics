@@ -19,10 +19,10 @@ import { useVolunteerStore } from "@/store/use-volunteer-store";
 export default function FingerprintForm() {
   const toast = useRef<Toast>(null);
   const router = useRouter();
-  const { selectedVolunteer } = useVolunteerStore();
+  const { selectedVolunteerId } = useVolunteerStore();
 
   const { data: volunteer, refetch } = useApiItem<Volunteer>(
-    `/volunteers/${selectedVolunteer?.id}`,
+    `/volunteers/${selectedVolunteerId}`,
   );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,12 +66,12 @@ export default function FingerprintForm() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
-    if (!selectedVolunteer) return;
+    if (!selectedVolunteerId) return;
 
     try {
       const { success, errors } = await submitFingerprints(
         formData,
-        selectedVolunteer.id,
+        selectedVolunteerId,
       );
 
       if (success > 0) {

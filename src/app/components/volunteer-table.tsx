@@ -9,6 +9,7 @@ import { useDelete } from "../hooks/use-delete";
 import { useRouter } from "next/navigation";
 import { Project } from "../utils/types/project";
 import { useVolunteerStore } from "@/store/use-volunteer-store";
+import { useEffect } from "react";
 
 const statusStyles: Record<string, { backgroundColor: string; color: string }> =
   {
@@ -18,17 +19,19 @@ const statusStyles: Record<string, { backgroundColor: string; color: string }> =
   };
 
 const VolunteerTable = ({
-  user,
   volunteer,
-  project,
 }: {
   user: User;
   volunteer: Volunteer;
   project: Project | undefined;
 }) => {
   const router = useRouter();
-  const { setSelectedVolunteer } = useVolunteerStore();
+  const { setSelectedVolunteerId } = useVolunteerStore();
   const { deleteItem, loading } = useDelete("/volunteers");
+
+  useEffect(() => {
+    console.log("volunteer", volunteer);
+  }, [volunteer]);
 
   const handleDelete = async (id: number) => {
     const sucesso = await deleteItem(id);
@@ -52,7 +55,7 @@ const VolunteerTable = ({
       <Link
         key={volunteer.id}
         style={{ width: "90%" }}
-        onClick={() => setSelectedVolunteer(volunteer)}
+        onClick={() => setSelectedVolunteerId(volunteer.id)}
         href={"/fingerprint-form"}
       >
         <div key={volunteer.id} className="table-row">
@@ -118,7 +121,7 @@ const VolunteerTable = ({
           rounded
           outlined
           onClick={() => {
-            setSelectedVolunteer(volunteer);
+            setSelectedVolunteerId(volunteer.id);
             router.push("/create-volunteers");
           }}
         ></Button>
