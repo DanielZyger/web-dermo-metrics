@@ -3,7 +3,12 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { InputNumber } from "primereact/inputnumber";
-import { FingerKey, fingerParse, PatternEnum } from "@/app/utils/constants";
+import {
+  FingerKey,
+  fingerParse,
+  PatternEnum,
+  API_BASE_URL,
+} from "@/app/utils/constants";
 import {
   Dispatch,
   RefObject,
@@ -17,6 +22,7 @@ import { Toast } from "primereact/toast";
 import {
   Fingerprint,
   FormDataFingerprint,
+  Point,
 } from "@/app/utils/types/fingerprint";
 import Image from "next/image";
 import { updateFingerprints } from "../utils/fingerprint-api";
@@ -52,15 +58,18 @@ const FingerprintDisplay = ({
 }: FingerprintDisplayProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const { selectedVolunteer } = useVolunteerStore();
+
   const [patternType, setPatternType] = useState<PatternEnum | null>(null);
-  const [delta, setDelta] = useState<number | null>(null);
+  const [number_deltas, setNumber_deltas] = useState<number | null>(null);
   const [numberOflines, setNumberOflines] = useState<number | undefined>();
+
+  const [corePoint, setCorePoint] = useState<Point>({ x: 100, y: 100 });
+  const [deltaPoint, setDeltaPoint] = useState<Point>({ x: 300, y: 200 });
 
   const correctFingerprint = useMemo(() => {
     if (!fingerprints || !fingerprints.length) return;
     return fingerprints.find((fp) => {
       const handLabel = hand === "leftHand" ? "left" : "right";
-      console.log("handLabel", fp.hand, handLabel, "-", hand);
       return fp.hand === handLabel && fp.finger === finger;
     });
   }, [fingerprints, hand, finger]);
@@ -89,17 +98,32 @@ const FingerprintDisplay = ({
   };
 
   const handleSaveAnalysis = useCallback(async () => {
-    if (!selectedVolunteer) return;
+    if (!selectedVolunteer || !correctFingerprint) return;
+
     await updateFingerprints({
-      delta: delta,
+      id: correctFingerprint.id,
+      volunteerId: selectedVolunteer.id,
+      hand,
+      finger,
+      number_deltas,
       pattern_type: patternType,
-      volunteerId: selectedVolunteer?.id,
-      numberOflines: numberOflines,
-      finger: finger,
-      formData: formData,
-      id: correctFingerprint?.id,
-      hand: hand,
+      numberOflines,
       notes: formData.notes,
+      formData,
+      core: corePoint
+        ? {
+            x: Math.round(corePoint.x),
+            y: Math.round(corePoint.y),
+          }
+        : null,
+      deltas: deltaPoint
+        ? [
+            {
+              x: Math.round(deltaPoint.x),
+              y: Math.round(deltaPoint.y),
+            },
+          ]
+        : [],
     });
 
     toast.current?.show({
@@ -111,8 +135,10 @@ const FingerprintDisplay = ({
 
     setModalVisible(false);
   }, [
-    delta,
     correctFingerprint,
+    corePoint,
+    number_deltas,
+    deltaPoint,
     finger,
     fingerName,
     formData,
@@ -123,17 +149,102 @@ const FingerprintDisplay = ({
     toast,
   ]);
 
-  const openModal = useCallback(async () => {
-    await refetch();
+  const openModal = useCallback(() => {
+    refetch();
+    setModalVisible(true);
+  }, [refetch]);
 
-    if (updatedFingerprint) {
-      setPatternType(updatedFingerprint.pattern_type as PatternEnum);
-      setDelta(updatedFingerprint.delta || null);
-      setNumberOflines(updatedFingerprint.number_of_lines);
+  useEffect(() => {
+    if (!modalVisible) return;
+
+    if (
+      updatedFingerprint &&
+      (updatedFingerprint.core ||
+        (updatedFingerprint.deltas && updatedFingerprint.deltas.length > 0))
+    ) {
+      console.log("usando updatedFingerprint", updatedFingerprint);
+
+      if (updatedFingerprint.pattern_type) {
+        setPatternType(updatedFingerprint.pattern_type as PatternEnum);
+      } else {
+        setPatternType(null);
+      }
+
+      setNumber_deltas(updatedFingerprint.number_deltas ?? null);
+      setNumberOflines(updatedFingerprint.ridge_counts ?? undefined);
+
+      if (updatedFingerprint.core) {
+        setCorePoint({
+          x: updatedFingerprint.core.x,
+          y: updatedFingerprint.core.y,
+        });
+      }
+
+      if (updatedFingerprint.deltas && updatedFingerprint.deltas.length > 0) {
+        setDeltaPoint({
+          x: updatedFingerprint.deltas[0].x,
+          y: updatedFingerprint.deltas[0].y,
+        });
+      }
+
+      return;
     }
 
-    setModalVisible(true);
-  }, [updatedFingerprint, refetch]);
+    const runDetection = async () => {
+      if (!correctFingerprint) return;
+
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/fingerprint/detect-singular-points`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fingerprint_id: correctFingerprint.id,
+              image_type: "filtered",
+            }),
+          },
+        );
+
+        if (!response.ok) {
+          console.error("Erro na detecção:", await response.text());
+          return;
+        }
+
+        const data = await response.json();
+        console.log("response detect-singular-points", data);
+
+        if (data?.cores?.length > 0) {
+          setCorePoint({
+            x: data.cores[0].x,
+            y: data.cores[0].y,
+          });
+        }
+
+        if (data?.deltas?.length > 0) {
+          setNumber_deltas(data.deltas.length);
+          setDeltaPoint({
+            x: data.deltas[0].x,
+            y: data.deltas[0].y,
+          });
+        }
+
+        if (data?.ridge_counts != null) {
+          setNumberOflines(data.ridge_counts);
+        }
+
+        if (data?.pattern_type) {
+          setPatternType(data.pattern_type as PatternEnum);
+        }
+      } catch (error) {
+        console.error("Erro ao detectar pontos singulares:", error);
+      }
+    };
+
+    runDetection();
+  }, [modalVisible, updatedFingerprint, correctFingerprint]);
 
   return (
     <>
@@ -179,7 +290,9 @@ const FingerprintDisplay = ({
               src={`data:image/jpeg;base64,${imageToShow}`}
               height={300}
               width={300}
-              alt={`${fingerName} - ${viewMode === "raw" ? "Original" : "Filtrada"}`}
+              alt={`${fingerName} - ${
+                viewMode === "raw" ? "Original" : "Filtrada"
+              }`}
               style={{
                 objectFit: "cover",
                 borderRadius: "12px",
@@ -187,7 +300,7 @@ const FingerprintDisplay = ({
                 height: "100%",
               }}
             />
-            {/* Overlay para indicar que é clicável */}
+
             <div
               style={{
                 position: "absolute",
@@ -259,11 +372,11 @@ const FingerprintDisplay = ({
             {imageToShow && (
               <FingerprintImage
                 imageToShow={imageToShow}
-                fingerprint={correctFingerprint}
-                setPatternType={setPatternType}
                 viewMode={viewMode}
-                setDelta={setDelta}
-                setNumberOflines={setNumberOflines}
+                corePoint={corePoint}
+                deltaPoint={deltaPoint}
+                setCorePoint={setCorePoint}
+                setDeltaPoint={setDeltaPoint}
               />
             )}
           </div>
@@ -313,8 +426,8 @@ const FingerprintDisplay = ({
                 Número de deltas
               </label>
               <InputNumber
-                value={delta}
-                onValueChange={(e) => setDelta(e.value ?? null)}
+                value={number_deltas}
+                onValueChange={(e) => setNumber_deltas(e.value ?? null)}
                 placeholder="Digite o número de deltas"
                 inputStyle={{ padding: 5 }}
                 style={{ width: "100%", padding: 5 }}

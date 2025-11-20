@@ -1,14 +1,5 @@
-import { API_BASE_URL, PatternEnum } from "@/app/utils/constants";
-import { Fingerprint } from "@/app/utils/types/fingerprint";
 import Image from "next/image";
-import {
-  useState,
-  useRef,
-  FC,
-  useEffect,
-  SetStateAction,
-  Dispatch,
-} from "react";
+import { useState, useRef, FC, SetStateAction, Dispatch } from "react";
 
 interface Point {
   x: number;
@@ -17,16 +8,23 @@ interface Point {
 
 const POINT_SIZE = 50;
 
+interface PropTypes {
+  imageToShow: Blob | string;
+  viewMode: string;
+  corePoint: Point;
+  deltaPoint: Point;
+  setCorePoint: Dispatch<SetStateAction<Point>>;
+  setDeltaPoint: Dispatch<SetStateAction<Point>>;
+}
+
 const FingerprintImage: FC<PropTypes> = ({
   imageToShow,
-  fingerprint,
   viewMode,
-  setDelta,
-  setPatternType,
-  setNumberOflines,
+  corePoint,
+  deltaPoint,
+  setCorePoint,
+  setDeltaPoint,
 }) => {
-  const [pointCore, setPointCore] = useState<Point>({ x: 100, y: 100 });
-  const [pointDelta, setPointDelta] = useState<Point>({ x: 300, y: 200 });
   const [dragging, setDragging] = useState<"pointCore" | "pointDelta" | null>(
     null,
   );
@@ -45,14 +43,12 @@ const FingerprintImage: FC<PropTypes> = ({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    console.log({ x, y });
-
     if (x < 0 || y < 0) return;
 
     if (dragging === "pointCore") {
-      setPointCore({ x, y });
+      setCorePoint({ x, y });
     } else if (dragging === "pointDelta") {
-      setPointDelta({ x, y });
+      setDeltaPoint({ x, y });
     }
   };
 
@@ -60,47 +56,10 @@ const FingerprintImage: FC<PropTypes> = ({
     setDragging(null);
   };
 
-  useEffect(() => {
-    const fetchDetection = async () => {
-      if (!fingerprint) return;
-
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/fingerprint/detect-singular-points`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              fingerprint_id: fingerprint.id,
-              image_type: "filtered",
-            }),
-          },
-        );
-
-        const data = await response.json();
-
-        if (data?.cores?.length > 0) {
-          setPointCore(data.cores[0]);
-        }
-        if (data.ridge_counts) {
-          setNumberOflines(data.ridge_counts);
-        }
-        if (data.fingerprint_type) {
-          setPatternType(data.fingerprint_type);
-        }
-        if (data?.deltas?.length > 0) {
-          setDelta(data.deltas.length);
-          setPointDelta(data.deltas[0]);
-        }
-      } catch (error) {
-        console.error("Erro:", error);
-      }
-    };
-
-    fetchDetection();
-  }, [fingerprint, setDelta, setNumberOflines, setPatternType]);
+  const imageSrc =
+    typeof imageToShow === "string"
+      ? `data:image/jpeg;base64,${imageToShow}`
+      : "";
 
   return (
     <div
@@ -125,8 +84,9 @@ const FingerprintImage: FC<PropTypes> = ({
         <h3 className="text-xl font-semibold text-gray-800">ULNA</h3>
         <h3 className="text-xl font-semibold text-gray-800">RÁDIO</h3>
       </div>
+
       <Image
-        src={`data:image/jpeg;base64,${imageToShow}`}
+        src={imageSrc}
         width={700}
         height={700}
         alt={viewMode === "raw" ? "Original" : "Filtrada"}
@@ -138,7 +98,7 @@ const FingerprintImage: FC<PropTypes> = ({
         }}
       />
 
-      {/* SVG para a linha */}
+      {/* Linha entre core e delta */}
       <svg
         style={{
           position: "absolute",
@@ -150,10 +110,10 @@ const FingerprintImage: FC<PropTypes> = ({
         }}
       >
         <line
-          x1={pointCore.x}
-          y1={pointCore.y}
-          x2={pointDelta.x}
-          y2={pointDelta.y}
+          x1={corePoint.x}
+          y1={corePoint.y}
+          x2={deltaPoint.x}
+          y2={deltaPoint.y}
           stroke="#0f0"
           strokeWidth="2"
         />
@@ -163,8 +123,8 @@ const FingerprintImage: FC<PropTypes> = ({
       <div
         style={{
           position: "absolute",
-          left: pointCore.x - POINT_SIZE / 2,
-          top: pointCore.y - POINT_SIZE / 2,
+          left: corePoint.x - POINT_SIZE / 2,
+          top: corePoint.y - POINT_SIZE / 2,
           cursor: "grab",
         }}
       >
@@ -183,7 +143,6 @@ const FingerprintImage: FC<PropTypes> = ({
             stroke="#00f"
             strokeWidth="8"
           />
-
           <circle cx="50" cy="50" r="10" fill="#00f" />
         </svg>
       </div>
@@ -192,8 +151,8 @@ const FingerprintImage: FC<PropTypes> = ({
       <div
         style={{
           position: "absolute",
-          left: pointDelta.x - POINT_SIZE / 2,
-          top: pointDelta.y - POINT_SIZE / 2,
+          left: deltaPoint.x - POINT_SIZE / 2,
+          top: deltaPoint.y - POINT_SIZE / 2,
           cursor: "grab",
         }}
       >
@@ -216,14 +175,5 @@ const FingerprintImage: FC<PropTypes> = ({
     </div>
   );
 };
-
-interface PropTypes {
-  imageToShow: Blob | string;
-  fingerprint: Fingerprint | undefined;
-  viewMode: string;
-  setDelta: Dispatch<SetStateAction<number | null>>;
-  setNumberOflines: Dispatch<SetStateAction<number | undefined>>;
-  setPatternType: (value: SetStateAction<PatternEnum | null>) => void;
-}
 
 export default FingerprintImage;

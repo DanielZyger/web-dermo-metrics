@@ -1,6 +1,7 @@
 import {
   Fingerprint,
   FormDataFingerprint,
+  Point,
 } from "@/app/utils/types/fingerprint";
 import {
   API_BASE_URL,
@@ -66,41 +67,62 @@ export async function submitFingerprints(
 export async function updateFingerprints({
   volunteerId,
   hand,
-  delta,
+  number_deltas,
   pattern_type,
   id,
   numberOflines,
   notes,
   finger,
+  core,
+  deltas,
   formData,
 }: UpdateFingerprintParams): Promise<{ success: number; errors: number }> {
   let successCount = 0;
   let errorCount = 0;
 
-  const fingerData = formData[hand][finger];
   if (!id) {
     return { success: 0, errors: 1 };
   }
+
+  const fingerData = formData[hand]?.[finger];
   const submitData = new FormData();
 
-  submitData.append("volunteer_id", volunteerId.toString());
-  submitData.append("image_data", fingerData.image_data);
+  // campos obrigatórios do endpoint
+  submitData.append("volunteer_id", String(volunteerId));
   submitData.append("hand", hand === "leftHand" ? "left" : "right");
   submitData.append("finger", finger);
 
-  if (numberOflines !== undefined) {
-    submitData.append("number_of_lines", String(numberOflines));
+  // imagens: só envia se tiver (não força overwrite pra null)
+  if (fingerData?.image_data) {
+    submitData.append("image_data", fingerData.image_data);
   }
-  if (fingerData.image_filtered) {
+  if (fingerData?.image_filtered) {
     submitData.append("image_filtered", fingerData.image_filtered);
   }
 
   if (pattern_type) {
     submitData.append("pattern_type", pattern_type);
   }
-  if (delta !== undefined && delta !== null) {
-    submitData.append("delta", String(delta));
+
+  if (number_deltas !== undefined && number_deltas !== null) {
+    submitData.append("number_deltas", String(number_deltas));
   }
+
+  // número de linhas => backend espera "ridge_counts"
+  if (numberOflines !== undefined && numberOflines !== null) {
+    submitData.append("ridge_counts", String(numberOflines));
+  }
+
+  // core: precisa ser JSON string, ex: {"x":120,"y":200}
+  if (core !== undefined && core !== null) {
+    submitData.append("core", JSON.stringify(core));
+  }
+
+  // deltas: também JSON string, ex: [{"x":80,"y":230}, ...]
+  if (deltas && deltas.length > 0) {
+    submitData.append("deltas", JSON.stringify(deltas));
+  }
+
   if (notes) {
     submitData.append("notes", notes);
   }
@@ -171,8 +193,10 @@ type UpdateFingerprintParams = {
   hand: HandKey;
   finger: FingerKey;
   pattern_type: PatternEnum | null;
-  delta: number | null;
   notes?: string;
+  number_deltas: number | null;
   id?: number;
+  core: Point | null;
+  deltas: [Point] | [];
   numberOflines?: number;
 };

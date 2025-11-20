@@ -177,14 +177,16 @@ export default function FingerprintForm() {
               style={{
                 padding: "12px 24px",
                 fontSize: "14px",
+                gap: "8px",
                 fontWeight: "500",
               }}
             />
             <Button
-              label={isSubmitting ? "Salvando..." : "Finalizar Registro"}
+              label={isSubmitting ? "Cadastrando..." : "Cadastrar Digitais"}
               icon={isSubmitting ? "pi pi-spin pi-spinner" : "pi pi-check"}
               onClick={handleSubmit}
               disabled={isSubmitting}
+              iconPos="left"
               style={{
                 padding: "12px 24px",
                 fontSize: "14px",
@@ -193,6 +195,7 @@ export default function FingerprintForm() {
                   ? "linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)"
                   : "#9ca3af",
                 border: "none",
+                gap: "8px",
                 opacity: isSubmitting ? 0.6 : 1,
               }}
             />

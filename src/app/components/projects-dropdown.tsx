@@ -56,6 +56,7 @@ const ProjectsDropdown = ({
         label={!isCollapsed ? "Projetos" : undefined}
         text
         style={{
+          gap: "4px",
           justifyContent: isCollapsed ? "center" : "space-between",
           padding: isCollapsed ? "12px 8px" : "12px 16px",
         }}

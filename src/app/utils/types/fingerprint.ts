@@ -22,14 +22,18 @@ export type FormDataFingerprint = {
   rightHand: Hand;
 };
 
+export type Point = { x: number; y: number };
+
 export type Fingerprint = {
   id: number;
   volunteer_id: number;
-  number_of_lines?: number;
+  ridge_counts?: number;
   hand: HandEnum;
+  number_deltas: number | null;
+  core: Point;
+  deltas: [Point];
   finger: FingerKey;
   pattern_type: string | null;
-  delta: number | null;
   notes: string | null;
   image_data: string;
   image_filtered: string | null;
