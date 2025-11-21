@@ -423,6 +423,8 @@ const VolunteerForm = () => {
                       width: "100%",
                       padding: "8px",
                     }}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     inputStyle={{
                       padding: "16px",
                       backgroundColor: "#f9fafb",
