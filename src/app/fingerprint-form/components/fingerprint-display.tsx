@@ -60,7 +60,7 @@ const FingerprintDisplay = ({
   viewMode,
 }: FingerprintDisplayProps) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const { selectedVolunteerId } = useVolunteerStore();
+  const { selectedVolunteerId, bumpFingerprintsVersion } = useVolunteerStore();
 
   const [patternType, setPatternType] = useState<PatternEnum | null>(null);
   const [number_deltas, setNumber_deltas] = useState<number | null>(null);
@@ -139,6 +139,7 @@ const FingerprintDisplay = ({
       life: 3000,
     });
 
+    bumpFingerprintsVersion();
     setModalVisible(false);
   }, [
     correctFingerprint,

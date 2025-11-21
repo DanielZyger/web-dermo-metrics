@@ -6,20 +6,46 @@ import { genderParse } from "@/app/utils/constants";
 import { useRouter } from "next/navigation";
 import { Volunteer } from "@/app/utils/types/volunteer";
 import { useVolunteerStore } from "@/store/use-volunteer-store";
+import { useEffect, useMemo } from "react";
 
 const PersonalDataForm = () => {
-  const { selectedVolunteerId } = useVolunteerStore();
+  const { selectedVolunteerId, fingerprintsVersion } = useVolunteerStore();
   const router = useRouter();
 
-  const { data: volunteer, loading } = useApiItem<Volunteer>(
-    `/volunteers/${selectedVolunteerId}`,
-  );
+  const {
+    data: volunteer,
+    loading,
+    refetch,
+  } = useApiItem<Volunteer>(`/volunteers/${selectedVolunteerId}`);
 
   const handleGoBack = () => {
     router.back();
   };
 
-  if (loading || !volunteer) {
+  useEffect(() => {
+    if (!selectedVolunteerId) return;
+    refetch();
+  }, [fingerprintsVersion, selectedVolunteerId, refetch]);
+
+  const totalRidgeCounts = useMemo(
+    () =>
+      (volunteer?.fingerprints ?? []).reduce(
+        (sum, fp) => sum + (fp.ridge_counts ?? 0),
+        0,
+      ),
+    [volunteer?.fingerprints],
+  );
+
+  const totalDeltas = useMemo(
+    () =>
+      (volunteer?.fingerprints ?? []).reduce(
+        (sum, fp) => sum + (fp.number_deltas ?? 0),
+        0,
+      ),
+    [volunteer?.fingerprints],
+  );
+
+  if (!volunteer) {
     return (
       <div
         style={{
@@ -240,19 +266,65 @@ const PersonalDataForm = () => {
                 paddingTop: "24px",
               }}
             >
-              <label
+              {/* Cabeçalho Observações + SQTL / Deltas */}
+              <div
                 style={{
-                  display: "block",
-                  fontSize: "12px",
-                  fontWeight: "500",
-                  color: "#64748b",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                   marginBottom: "12px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.8px",
                 }}
               >
-                Observações
-              </label>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    color: "#64748b",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.8px",
+                  }}
+                >
+                  Observações
+                </label>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    alignItems: "center",
+                    fontSize: "12px",
+                  }}
+                >
+                  <span
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      backgroundColor: "#e0f2fe",
+                      color: "#0369a1",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    SQTL: {totalRidgeCounts}
+                  </span>
+                  <span
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      backgroundColor: "#fee2e2",
+                      color: "#b91c1c",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Deltas: {totalDeltas}
+                  </span>
+                </div>
+              </div>
+
               <p
                 style={{
                   fontSize: "15px",
