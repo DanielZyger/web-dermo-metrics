@@ -6,7 +6,7 @@ import Sidebar from "../components/sidebar";
 import { useApi } from "../hooks/use-api";
 import { useApiItem } from "../hooks/use-api-item";
 import { User } from "../utils/types/user";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Volunteer } from "../utils/types/volunteer";
 import { useProjectStore } from "../../store/use-project-store";
 import VolunteerTable from "../components/volunteer-table";
@@ -17,11 +17,9 @@ export default function HomePage() {
   const { selectedProject, setSelectedProject } = useProjectStore();
   const router = useRouter();
   const { clearSelectedVolunteer } = useVolunteerStore();
-  const searchParams = useSearchParams();
-  const user_id = searchParams.get("user_id");
 
   const { user, setUser } = useUserStore();
-  const { data: apiUser } = useApiItem<User>(`/users/${user_id}`);
+  const { data: apiUser } = useApiItem<User>(`/users/${user?.id}`);
 
   useEffect(() => {
     if (apiUser) {
