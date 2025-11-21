@@ -1,4 +1,4 @@
-// src/app/create-project/CreateProjectPageClient.tsx
+// src/app/create-project/create-project-page-client.tsx
 "use client";
 
 import "./styles.css";
@@ -51,7 +51,6 @@ const CreateProjectPageClient = ({ userId }: CreateProjectPageClientProps) => {
     }));
   };
 
-  // Buscar dados do projeto se estiver editando
   const fetchProjectData = useCallback(async () => {
     if (!projectId) return;
 
@@ -85,7 +84,6 @@ const CreateProjectPageClient = ({ userId }: CreateProjectPageClientProps) => {
     if (!user) return;
 
     const formDataObj = new FormData();
-    console.log("formData", formData);
     formDataObj.append("name", formData.name);
     formDataObj.append("description", formData.description);
     formDataObj.append("user_id", user.id.toString());
@@ -98,7 +96,7 @@ const CreateProjectPageClient = ({ userId }: CreateProjectPageClientProps) => {
 
     try {
       const response = await fetch(url, {
-        method: method,
+        method,
         body: formDataObj,
       });
 
