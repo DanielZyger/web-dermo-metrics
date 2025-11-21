@@ -1,10 +1,9 @@
-// src/app/create-project/create-project-page-client.tsx
 "use client";
 
 import "./styles.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Sidebar from "../components/sidebar";
-import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "../utils/constants";
 import { Toast } from "primereact/toast";
 import { useUserStore } from "@/store/use-user-store";
@@ -12,11 +11,10 @@ import { useProjectStore } from "@/store/use-project-store";
 import { useApiItem } from "../hooks/use-api-item";
 import { User } from "../utils/types/user";
 
-type CreateProjectPageClientProps = {
-  userId?: string;
-};
+const CreateProjectPageClient = () => {
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("user_id");
 
-const CreateProjectPageClient = ({ userId }: CreateProjectPageClientProps) => {
   const { selectedProject } = useProjectStore();
   const toast = useRef<Toast | null>(null);
   const router = useRouter();
