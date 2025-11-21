@@ -102,12 +102,10 @@ export async function updateFingerprints({
     submitData.append("ridge_counts", String(numberOflines));
   }
 
-  // core: precisa ser JSON string, ex: {"x":120,"y":200}
-  if (core !== undefined && core !== null) {
+  if (core && core.length > 0) {
     submitData.append("core", JSON.stringify(core));
   }
 
-  // deltas: também JSON string, ex: [{"x":80,"y":230}, ...]
   if (deltas && deltas.length > 0) {
     submitData.append("deltas", JSON.stringify(deltas));
   }
@@ -184,7 +182,7 @@ type UpdateFingerprintParams = {
   notes?: string;
   number_deltas: number | null;
   id?: number;
-  core: Point | null;
+  core: [Point] | [];
   deltas: [Point] | [];
   numberOflines: number | null;
 };

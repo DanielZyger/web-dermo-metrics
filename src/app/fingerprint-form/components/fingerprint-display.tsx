@@ -111,11 +111,13 @@ const FingerprintDisplay = ({
       numberOflines,
       notes: formData.notes,
       core: corePoint
-        ? {
-            x: Math.round(corePoint.x),
-            y: Math.round(corePoint.y),
-          }
-        : null,
+        ? [
+            {
+              x: Math.round(corePoint.x),
+              y: Math.round(corePoint.y),
+            },
+          ]
+        : [],
       deltas: deltaPoint
         ? [
             {
