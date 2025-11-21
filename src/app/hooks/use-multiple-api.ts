@@ -38,6 +38,7 @@ export const useMultipleApi = () => {
       const results = await Promise.allSettled(promises);
 
       // TODO ajustar esse any aqui
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const successResults: Record<string, any[]> = {};
       const errorResults: Record<string, string> = {};
 
@@ -46,6 +47,7 @@ export const useMultipleApi = () => {
 
         if (result.status === "fulfilled") {
           // TODO ajustar esse any aqui
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const value = result.value as any;
           if (value.error) {
             errorResults[endpoint] = value.error;
