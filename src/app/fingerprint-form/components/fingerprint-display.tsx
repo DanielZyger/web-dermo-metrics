@@ -42,7 +42,8 @@ type FingerprintDisplayProps = {
 
 const patternOptions = [
   { label: "Arco", value: PatternEnum.ARCH },
-  { label: "Presilha", value: PatternEnum.LOOP },
+  { label: "Presilha Radial", value: PatternEnum.RADIAL_LOOP },
+  { label: "Presilha Ulnar", value: PatternEnum.ULNAR_LOOP },
   { label: "Verticilo", value: PatternEnum.WHORL },
   { label: "Verticilo Duplo", value: PatternEnum.DOUBLE_WHORL },
 ];
@@ -63,8 +64,8 @@ const FingerprintDisplay = ({
   const [number_deltas, setNumber_deltas] = useState<number | null>(null);
   const [numberOflines, setNumberOflines] = useState<number | null>(null);
 
-  const [corePoint, setCorePoint] = useState<Point>({ x: 100, y: 100 });
-  const [deltaPoint, setDeltaPoint] = useState<Point>({ x: 300, y: 200 });
+  const [corePoint, setCorePoint] = useState<Point>({ x: 0, y: 0 });
+  const [deltaPoint, setDeltaPoint] = useState<Point>({ x: 0, y: 0 });
 
   const correctFingerprint = useMemo(() => {
     if (!fingerprints || !fingerprints.length) return;
@@ -222,8 +223,8 @@ const FingerprintDisplay = ({
           });
         }
 
+        setNumber_deltas(data.number_deltas);
         if (data?.deltas?.length > 0) {
-          setNumber_deltas(data.deltas.length);
           setDeltaPoint({
             x: data.deltas[0].x,
             y: data.deltas[0].y,

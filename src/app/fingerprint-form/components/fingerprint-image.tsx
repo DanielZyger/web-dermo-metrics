@@ -43,7 +43,7 @@ const FingerprintImage: FC<PropTypes> = ({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    if (x < 0 || y < 0) return;
+    if (x <= 0 || y <= 0) return;
 
     if (dragging === "pointCore") {
       setCorePoint({ x, y });
@@ -60,6 +60,9 @@ const FingerprintImage: FC<PropTypes> = ({
     typeof imageToShow === "string"
       ? `data:image/jpeg;base64,${imageToShow}`
       : "";
+
+  const hasCore = corePoint.x > 0 && corePoint.y > 0;
+  const hasDelta = deltaPoint.x > 0 && deltaPoint.y > 0;
 
   return (
     <div
@@ -98,80 +101,86 @@ const FingerprintImage: FC<PropTypes> = ({
         }}
       />
 
-      {/* Linha entre core e delta */}
-      <svg
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-        }}
-      >
-        <line
-          x1={corePoint.x}
-          y1={corePoint.y}
-          x2={deltaPoint.x}
-          y2={deltaPoint.y}
-          stroke="#0f0"
-          strokeWidth="2"
-        />
-      </svg>
-
-      {/* Point Core */}
-      <div
-        style={{
-          position: "absolute",
-          left: corePoint.x - POINT_SIZE / 2,
-          top: corePoint.y - POINT_SIZE / 2,
-          cursor: "grab",
-        }}
-      >
+      {/* Linha entre core e delta (só se ambos existirem) */}
+      {hasCore && hasDelta && (
         <svg
-          width={POINT_SIZE}
-          height={POINT_SIZE}
-          viewBox="0 0 100 100"
-          xmlns="http://www.w3.org/2000/svg"
-          onMouseDown={handleMouseDown("pointCore")}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+          }}
         >
-          <circle
-            cx="50"
-            cy="50"
-            r="30"
-            fill="none"
-            stroke="#00f"
-            strokeWidth="8"
-          />
-          <circle cx="50" cy="50" r="10" fill="#00f" />
-        </svg>
-      </div>
-
-      {/* Point Delta */}
-      <div
-        style={{
-          position: "absolute",
-          left: deltaPoint.x - POINT_SIZE / 2,
-          top: deltaPoint.y - POINT_SIZE / 2,
-          cursor: "grab",
-        }}
-      >
-        <svg
-          width={POINT_SIZE}
-          height={POINT_SIZE}
-          viewBox="0 0 100 100"
-          xmlns="http://www.w3.org/2000/svg"
-          onMouseDown={handleMouseDown("pointDelta")}
-        >
-          <path
-            d="M 50 20 L 20 80 L 80 80 Z"
-            fill="#f00"
-            fillOpacity="0.15"
-            stroke="#f00"
-            strokeWidth="8"
+          <line
+            x1={corePoint.x}
+            y1={corePoint.y}
+            x2={deltaPoint.x}
+            y2={deltaPoint.y}
+            stroke="#0f0"
+            strokeWidth="2"
           />
         </svg>
-      </div>
+      )}
+
+      {/* Point Core (apenas se existir) */}
+      {hasCore && (
+        <div
+          style={{
+            position: "absolute",
+            left: corePoint.x - POINT_SIZE / 2,
+            top: corePoint.y - POINT_SIZE / 2,
+            cursor: "grab",
+          }}
+        >
+          <svg
+            width={POINT_SIZE}
+            height={POINT_SIZE}
+            viewBox="0 0 100 100"
+            xmlns="http://www.w3.org/2000/svg"
+            onMouseDown={handleMouseDown("pointCore")}
+          >
+            <circle
+              cx="50"
+              cy="50"
+              r="30"
+              fill="none"
+              stroke="#00f"
+              strokeWidth="8"
+            />
+            <circle cx="50" cy="50" r="10" fill="#00f" />
+          </svg>
+        </div>
+      )}
+
+      {/* Point Delta (apenas se existir) */}
+      {hasDelta && (
+        <div
+          style={{
+            position: "absolute",
+            left: deltaPoint.x - POINT_SIZE / 2,
+            top: deltaPoint.y - POINT_SIZE / 2,
+            cursor: "grab",
+          }}
+        >
+          <svg
+            width={POINT_SIZE}
+            height={POINT_SIZE}
+            viewBox="0 0 100 100"
+            xmlns="http://www.w3.org/2000/svg"
+            onMouseDown={handleMouseDown("pointDelta")}
+          >
+            <path
+              d="M 50 20 L 20 80 L 80 80 Z"
+              fill="#f00"
+              fillOpacity="0.15"
+              stroke="#f00"
+              strokeWidth="8"
+            />
+          </svg>
+        </div>
+      )}
     </div>
   );
 };

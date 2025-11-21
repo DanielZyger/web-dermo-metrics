@@ -22,7 +22,8 @@ export const statusParse = {
 
 export enum PatternEnum {
   ARCH = "arch",
-  LOOP = "loop",
+  RADIAL_LOOP = "radial_loop",
+  ULNAR_LOOP = "ulnar_loop",
   WHORL = "whorl",
   DOUBLE_WHORL = "double_whorl",
 }
