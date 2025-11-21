@@ -41,13 +41,13 @@ interface VolunteerFormErrors {
 
 const VolunteerForm = () => {
   const { selectedProject } = useProjectStore();
-  const { selectedVolunteer } = useVolunteerStore();
+  const { selectedVolunteerId } = useVolunteerStore();
 
   const router = useRouter();
 
   const volunteer_id = useMemo(() => {
-    return selectedVolunteer?.id;
-  }, [selectedVolunteer]);
+    return selectedVolunteerId;
+  }, [selectedVolunteerId]);
 
   const projectId = useMemo(() => {
     return selectedProject?.id;

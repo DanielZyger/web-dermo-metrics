@@ -61,7 +61,7 @@ const FingerprintDisplay = ({
 
   const [patternType, setPatternType] = useState<PatternEnum | null>(null);
   const [number_deltas, setNumber_deltas] = useState<number | null>(null);
-  const [numberOflines, setNumberOflines] = useState<number | undefined>();
+  const [numberOflines, setNumberOflines] = useState<number | null>(null);
 
   const [corePoint, setCorePoint] = useState<Point>({ x: 100, y: 100 });
   const [deltaPoint, setDeltaPoint] = useState<Point>({ x: 300, y: 200 });
@@ -109,7 +109,6 @@ const FingerprintDisplay = ({
       pattern_type: patternType,
       numberOflines,
       notes: formData.notes,
-      formData,
       core: corePoint
         ? {
             x: Math.round(corePoint.x),
@@ -171,7 +170,7 @@ const FingerprintDisplay = ({
       }
 
       setNumber_deltas(updatedFingerprint.number_deltas ?? null);
-      setNumberOflines(updatedFingerprint.ridge_counts ?? undefined);
+      setNumberOflines(updatedFingerprint.ridge_counts ?? null);
 
       if (updatedFingerprint.core) {
         setCorePoint({
@@ -449,7 +448,7 @@ const FingerprintDisplay = ({
               </label>
               <InputNumber
                 value={numberOflines}
-                onValueChange={(e) => setNumberOflines(e.value ?? undefined)}
+                onValueChange={(e) => setNumberOflines(e.value ?? null)}
                 placeholder="Digite o número de linhas"
                 inputStyle={{ padding: 5 }}
                 style={{ width: "100%", padding: 5 }}

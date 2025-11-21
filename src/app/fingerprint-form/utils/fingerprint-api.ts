@@ -75,7 +75,6 @@ export async function updateFingerprints({
   finger,
   core,
   deltas,
-  formData,
 }: UpdateFingerprintParams): Promise<{ success: number; errors: number }> {
   let successCount = 0;
   let errorCount = 0;
@@ -84,21 +83,12 @@ export async function updateFingerprints({
     return { success: 0, errors: 1 };
   }
 
-  const fingerData = formData[hand]?.[finger];
   const submitData = new FormData();
 
   // campos obrigatórios do endpoint
   submitData.append("volunteer_id", String(volunteerId));
   submitData.append("hand", hand === "leftHand" ? "left" : "right");
   submitData.append("finger", finger);
-
-  // imagens: só envia se tiver (não força overwrite pra null)
-  if (fingerData?.image_data) {
-    submitData.append("image_data", fingerData.image_data);
-  }
-  if (fingerData?.image_filtered) {
-    submitData.append("image_filtered", fingerData.image_filtered);
-  }
 
   if (pattern_type) {
     submitData.append("pattern_type", pattern_type);
@@ -108,7 +98,6 @@ export async function updateFingerprints({
     submitData.append("number_deltas", String(number_deltas));
   }
 
-  // número de linhas => backend espera "ridge_counts"
   if (numberOflines !== undefined && numberOflines !== null) {
     submitData.append("ridge_counts", String(numberOflines));
   }
@@ -189,7 +178,6 @@ export function transformFingerprintsToFormData(
 
 type UpdateFingerprintParams = {
   volunteerId: number;
-  formData: FormDataFingerprint;
   hand: HandKey;
   finger: FingerKey;
   pattern_type: PatternEnum | null;
@@ -198,5 +186,5 @@ type UpdateFingerprintParams = {
   id?: number;
   core: Point | null;
   deltas: [Point] | [];
-  numberOflines?: number;
+  numberOflines: number | null;
 };
