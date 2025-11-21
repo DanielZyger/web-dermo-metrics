@@ -1,16 +1,17 @@
-// src/app/create-project/page.tsx
-
-import CreateProjectPageClient from "./create-project-page-client"; // confira o nome do arquivo
+import CreateProjectPageClient from "./create-project-page-client";
 
 type CreateProjectPageProps = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   searchParams?: any;
 };
 
-export default function CreateProjectPage({
+export default async function CreateProjectPage({
   searchParams,
 }: CreateProjectPageProps) {
-  const rawUserId = (searchParams?.user_id ?? undefined) as
+  // se for Promise, o await resolve; se já for objeto, o await só retorna o valor
+  const params = await searchParams;
+
+  const rawUserId = (params?.user_id ?? undefined) as
     | string
     | string[]
     | undefined;
