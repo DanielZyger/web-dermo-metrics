@@ -48,6 +48,8 @@ const patternOptions = [
   { label: "Verticilo Duplo", value: PatternEnum.DOUBLE_WHORL },
 ];
 
+const MAX_POINTS = 2;
+
 const FingerprintDisplay = ({
   hand,
   finger,
@@ -64,20 +66,26 @@ const FingerprintDisplay = ({
   const [number_deltas, setNumber_deltas] = useState<number | null>(null);
   const [numberOflines, setNumberOflines] = useState<number | null>(null);
 
-  const [corePoint, setCorePoint] = useState<Point>({ x: 0, y: 0 });
-  const [deltaPoint, setDeltaPoint] = useState<Point>({ x: 0, y: 0 });
+  // SEMPRE arrays
+  const [cores, setCores] = useState<Point[]>([]);
+  const [deltas, setDeltas] = useState<Point[]>([]);
 
   const correctFingerprint = useMemo(() => {
     if (!fingerprints || !fingerprints.length) return;
-    return fingerprints.find((fp) => {
-      const handLabel = hand === "leftHand" ? "left" : "right";
-      return fp.hand === handLabel && fp.finger === finger;
-    });
+    const handLabel = hand === "leftHand" ? "left" : "right";
+    return fingerprints.find(
+      (fp) => fp.hand === handLabel && fp.finger === finger,
+    );
   }, [fingerprints, hand, finger]);
 
   const { data: updatedFingerprint, refetch } = useApiItem<Fingerprint>(
     `/fingerprints/${correctFingerprint?.id}`,
   );
+
+  const onClearInputs = useCallback(() => {
+    setNumberOflines(0);
+    setNumber_deltas(0);
+  }, [setNumberOflines, setNumber_deltas]);
 
   const fingerData = formData[hand]?.[finger];
   const imageToShow =
@@ -110,21 +118,17 @@ const FingerprintDisplay = ({
       pattern_type: patternType,
       numberOflines,
       notes: formData.notes,
-      core: corePoint
-        ? [
-            {
-              x: Math.round(corePoint.x),
-              y: Math.round(corePoint.y),
-            },
-          ]
+      core: cores
+        ? cores.slice(0, MAX_POINTS).map((p) => ({
+            x: Math.round(p.x),
+            y: Math.round(p.y),
+          }))
         : [],
-      deltas: deltaPoint
-        ? [
-            {
-              x: Math.round(deltaPoint.x),
-              y: Math.round(deltaPoint.y),
-            },
-          ]
+      deltas: deltas
+        ? deltas.slice(0, MAX_POINTS).map((p) => ({
+            x: Math.round(p.x),
+            y: Math.round(p.y),
+          }))
         : [],
     });
 
@@ -138,9 +142,9 @@ const FingerprintDisplay = ({
     setModalVisible(false);
   }, [
     correctFingerprint,
-    corePoint,
+    cores,
+    deltas,
     number_deltas,
-    deltaPoint,
     finger,
     fingerName,
     formData,
@@ -159,9 +163,10 @@ const FingerprintDisplay = ({
   useEffect(() => {
     if (!modalVisible) return;
 
+    // CASO 1: já existe análise salva no backend
     if (
       updatedFingerprint &&
-      (updatedFingerprint.core ||
+      ((updatedFingerprint.core && updatedFingerprint.core.length > 0) ||
         (updatedFingerprint.deltas && updatedFingerprint.deltas.length > 0))
     ) {
       console.log("usando updatedFingerprint", updatedFingerprint);
@@ -175,23 +180,23 @@ const FingerprintDisplay = ({
       setNumber_deltas(updatedFingerprint.number_deltas ?? null);
       setNumberOflines(updatedFingerprint.ridge_counts ?? null);
 
-      if (updatedFingerprint.core) {
-        setCorePoint({
-          x: updatedFingerprint.core.x,
-          y: updatedFingerprint.core.y,
-        });
-      }
+      // core e deltas sempre arrays agora
+      setCores(
+        updatedFingerprint.core
+          ? updatedFingerprint.core.slice(0, MAX_POINTS)
+          : [],
+      );
 
-      if (updatedFingerprint.deltas && updatedFingerprint.deltas.length > 0) {
-        setDeltaPoint({
-          x: updatedFingerprint.deltas[0].x,
-          y: updatedFingerprint.deltas[0].y,
-        });
-      }
+      setDeltas(
+        updatedFingerprint.deltas
+          ? updatedFingerprint.deltas.slice(0, MAX_POINTS)
+          : [],
+      );
 
       return;
     }
 
+    // CASO 2: não há análise anterior → roda detecção automática
     const runDetection = async () => {
       if (!correctFingerprint) return;
 
@@ -218,19 +223,18 @@ const FingerprintDisplay = ({
         const data = await response.json();
         console.log("response detect-singular-points", data);
 
-        if (data?.cores?.length > 0) {
-          setCorePoint({
-            x: data.cores[0].x,
-            y: data.cores[0].y,
-          });
+        if (data?.cores && data.cores.length > 0) {
+          setCores(data.cores.slice(0, MAX_POINTS));
+        } else {
+          setCores([]);
         }
 
-        setNumber_deltas(data.number_deltas);
-        if (data?.deltas?.length > 0) {
-          setDeltaPoint({
-            x: data.deltas[0].x,
-            y: data.deltas[0].y,
-          });
+        setNumber_deltas(data.number_deltas ?? null);
+
+        if (data?.deltas && data.deltas.length > 0) {
+          setDeltas(data.deltas.slice(0, MAX_POINTS));
+        } else {
+          setDeltas([]);
         }
 
         if (data?.ridge_counts != null) {
@@ -374,11 +378,16 @@ const FingerprintDisplay = ({
             {imageToShow && (
               <FingerprintImage
                 imageToShow={imageToShow}
+                hand={hand}
                 viewMode={viewMode}
-                corePoint={corePoint}
-                deltaPoint={deltaPoint}
-                setCorePoint={setCorePoint}
-                setDeltaPoint={setDeltaPoint}
+                cores={cores}
+                deltas={deltas}
+                setCores={setCores}
+                setDeltas={setDeltas}
+                fingerprintType={patternType}
+                onClearInputs={onClearInputs}
+                setNumberDeltas={setNumber_deltas}
+                number_deltas={number_deltas}
               />
             )}
           </div>

@@ -30,8 +30,8 @@ export type Fingerprint = {
   ridge_counts?: number;
   hand: HandEnum;
   number_deltas: number | null;
-  core: Point;
-  deltas: [Point];
+  core: Point[];
+  deltas: Point[];
   finger: FingerKey;
   pattern_type: string | null;
   notes: string | null;

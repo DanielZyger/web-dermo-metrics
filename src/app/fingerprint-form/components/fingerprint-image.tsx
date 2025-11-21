@@ -1,5 +1,14 @@
+import { PatternEnum } from "@/app/utils/constants";
 import Image from "next/image";
-import { useState, useRef, FC, SetStateAction, Dispatch } from "react";
+import type React from "react";
+import {
+  useState,
+  useRef,
+  FC,
+  SetStateAction,
+  Dispatch,
+  useEffect,
+} from "react";
 
 interface Point {
   x: number;
@@ -7,33 +16,68 @@ interface Point {
 }
 
 const POINT_SIZE = 50;
+const MAX_POINTS = 2;
 
 interface PropTypes {
   imageToShow: Blob | string;
+  hand: "leftHand" | "rightHand";
   viewMode: string;
-  corePoint: Point;
-  deltaPoint: Point;
-  setCorePoint: Dispatch<SetStateAction<Point>>;
-  setDeltaPoint: Dispatch<SetStateAction<Point>>;
+  cores: Point[];
+  deltas: Point[];
+  setCores: Dispatch<SetStateAction<Point[]>>;
+  setDeltas: Dispatch<SetStateAction<Point[]>>;
+  fingerprintType: PatternEnum | null;
+  onClearInputs: () => void;
+  setNumberDeltas: Dispatch<SetStateAction<number | null>>;
+  number_deltas: number | null;
 }
+
+type DraggingState =
+  | { type: "core"; index: number }
+  | { type: "delta"; index: number }
+  | null;
 
 const FingerprintImage: FC<PropTypes> = ({
   imageToShow,
   viewMode,
-  corePoint,
-  deltaPoint,
-  setCorePoint,
-  setDeltaPoint,
+  cores,
+  deltas,
+  setCores,
+  setDeltas,
+  fingerprintType,
+  number_deltas,
+  hand,
+  setNumberDeltas,
+  onClearInputs,
 }) => {
-  const [dragging, setDragging] = useState<"pointCore" | "pointDelta" | null>(
-    null,
-  );
+  const [dragging, setDragging] = useState<DraggingState>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const imageSrc =
+    typeof imageToShow === "string"
+      ? `data:image/jpeg;base64,${imageToShow}`
+      : "";
+
+  const hasCores = cores.length > 0;
+  const hasDeltas = deltas.length > 0;
+
+  const getDefaultPoint = (): Point => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      return {
+        x: rect.width / 2,
+        y: rect.height / 2,
+      };
+    }
+    return { x: 350, y: 350 };
+  };
+
   const handleMouseDown =
-    (pointId: "pointCore" | "pointDelta") => (e: React.MouseEvent) => {
+    (type: "core" | "delta", index: number) =>
+    (e: React.MouseEvent<HTMLOrSVGElement>) => {
       e.preventDefault();
-      setDragging(pointId);
+      e.stopPropagation();
+      setDragging({ type, index });
     };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -45,10 +89,14 @@ const FingerprintImage: FC<PropTypes> = ({
 
     if (x <= 0 || y <= 0) return;
 
-    if (dragging === "pointCore") {
-      setCorePoint({ x, y });
-    } else if (dragging === "pointDelta") {
-      setDeltaPoint({ x, y });
+    if (dragging.type === "core") {
+      setCores((prev) =>
+        prev.map((p, idx) => (idx === dragging.index ? { x, y } : p)),
+      );
+    } else if (dragging.type === "delta") {
+      setDeltas((prev) =>
+        prev.map((p, idx) => (idx === dragging.index ? { x, y } : p)),
+      );
     }
   };
 
@@ -56,131 +104,277 @@ const FingerprintImage: FC<PropTypes> = ({
     setDragging(null);
   };
 
-  const imageSrc =
-    typeof imageToShow === "string"
-      ? `data:image/jpeg;base64,${imageToShow}`
-      : "";
+  const handleClearPoints = () => {
+    setDragging(null);
+    setCores([]);
+    setDeltas([]);
+    onClearInputs();
+  };
 
-  const hasCore = corePoint.x > 0 && corePoint.y > 0;
-  const hasDelta = deltaPoint.x > 0 && deltaPoint.y > 0;
+  const handleAddCore = () => {
+    setCores((prev) => {
+      if (prev.length >= MAX_POINTS) return prev;
+      return [...prev, getDefaultPoint()];
+    });
+  };
+
+  const handleAddDelta = () => {
+    setDeltas((prev) => {
+      if (prev.length >= MAX_POINTS) return prev;
+      return [...prev, getDefaultPoint()];
+    });
+    setNumberDeltas((number_deltas || 0) + 1);
+  };
+
+  // se o tipo de digital virar "arch", limpa tudo
+  useEffect(() => {
+    if (
+      fingerprintType &&
+      fingerprintType.toString().toLowerCase() === "arch"
+    ) {
+      handleClearPoints();
+    }
+  }, [fingerprintType, handleClearPoints]);
 
   return (
     <div
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
       style={{
-        position: "relative",
-        display: "inline-block",
-        cursor: dragging ? "grabbing" : "default",
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "16px",
       }}
     >
+      {/* Área da imagem + overlays */}
       <div
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
         style={{
-          flexDirection: "row",
-          display: "flex",
-          justifyContent: "space-between",
-          padding: 10,
+          position: "relative",
+          display: "inline-block",
+          cursor: dragging ? "grabbing" : "default",
         }}
       >
-        <h3 className="text-xl font-semibold text-gray-800">ULNA</h3>
-        <h3 className="text-xl font-semibold text-gray-800">RÁDIO</h3>
+        <div
+          style={{
+            flexDirection: "row",
+            display: "flex",
+            justifyContent: "space-between",
+            padding: 10,
+          }}
+        >
+          <h3
+            style={{
+              fontSize: "20px",
+              fontWeight: 600,
+              color: "#1f2937",
+            }}
+          >
+            {hand == "leftHand" ? "ULNA" : "RÁDIO"}
+          </h3>
+          <h3
+            style={{
+              fontSize: "20px",
+              fontWeight: 600,
+              color: "#1f2937",
+            }}
+          >
+            {hand == "rightHand" ? "ULNA" : "RÁDIO"}
+          </h3>
+        </div>
+
+        <Image
+          src={imageSrc}
+          width={700}
+          height={700}
+          alt={viewMode === "raw" ? "Original" : "Filtrada"}
+          style={{
+            maxWidth: "100%",
+            maxHeight: "100%",
+            objectFit: "contain",
+            borderRadius: "8px",
+          }}
+        />
+
+        {/* Linhas entre pares core/delta (core[i] ↔ delta[i]) */}
+        {hasCores && hasDeltas && (
+          <svg
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+            }}
+          >
+            {cores.map((core, index) => {
+              const delta = deltas[index];
+              if (!delta) return null;
+              return (
+                <line
+                  key={index}
+                  x1={core.x}
+                  y1={core.y}
+                  x2={delta.x}
+                  y2={delta.y}
+                  stroke="#0f0"
+                  strokeWidth={2}
+                />
+              );
+            })}
+          </svg>
+        )}
+
+        {/* Cores */}
+        {cores.map((core, index) => (
+          <div
+            key={`core-${index}`}
+            style={{
+              position: "absolute",
+              left: core.x - POINT_SIZE / 2,
+              top: core.y - POINT_SIZE / 2,
+              cursor: "grab",
+            }}
+          >
+            <svg
+              width={POINT_SIZE}
+              height={POINT_SIZE}
+              viewBox="0 0 100 100"
+              xmlns="http://www.w3.org/2000/svg"
+              onMouseDown={handleMouseDown("core", index)}
+            >
+              <circle
+                cx="50"
+                cy="50"
+                r="30"
+                fill="none"
+                stroke="#00f"
+                strokeWidth="8"
+              />
+              <circle cx="50" cy="50" r="10" fill="#00f" />
+            </svg>
+          </div>
+        ))}
+
+        {/* Deltas */}
+        {deltas.map((delta, index) => (
+          <div
+            key={`delta-${index}`}
+            style={{
+              position: "absolute",
+              left: delta.x - POINT_SIZE / 2,
+              top: delta.y - POINT_SIZE / 2,
+              cursor: "grab",
+            }}
+          >
+            <svg
+              width={POINT_SIZE}
+              height={POINT_SIZE}
+              viewBox="0 0 100 100"
+              xmlns="http://www.w3.org/2000/svg"
+              onMouseDown={handleMouseDown("delta", index)}
+            >
+              <path
+                d="M 50 20 L 20 80 L 80 80 Z"
+                fill="#f00"
+                fillOpacity="0.15"
+                stroke="#f00"
+                strokeWidth="8"
+              />
+            </svg>
+          </div>
+        ))}
       </div>
 
-      <Image
-        src={imageSrc}
-        width={700}
-        height={700}
-        alt={viewMode === "raw" ? "Original" : "Filtrada"}
+      {/* Barra de controles na lateral direita */}
+      <div
         style={{
-          maxWidth: "100%",
-          maxHeight: "100%",
-          objectFit: "contain",
-          borderRadius: "8px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          marginTop: "40px", // um pequeno alinhamento com o topo da imagem
         }}
-      />
-
-      {/* Linha entre core e delta (só se ambos existirem) */}
-      {hasCore && hasDelta && (
-        <svg
+      >
+        <button
+          type="button"
+          onClick={handleAddCore}
+          disabled={cores.length >= MAX_POINTS}
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
+            padding: "8px 12px",
+            fontSize: "13px",
+            fontWeight: 500,
+            borderRadius: "6px",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            cursor: cores.length >= MAX_POINTS ? "not-allowed" : "pointer",
+            backgroundColor: cores.length >= MAX_POINTS ? "#9ca3af" : "#2563eb",
+            color: "#ffffff",
+            minWidth: "150px",
           }}
         >
-          <line
-            x1={corePoint.x}
-            y1={corePoint.y}
-            x2={deltaPoint.x}
-            y2={deltaPoint.y}
-            stroke="#0f0"
-            strokeWidth="2"
+          <i
+            className="pi pi-bullseye"
+            style={{ fontSize: "14px", color: "inherit" }}
           />
-        </svg>
-      )}
+          <span>Adicionar core</span>
+        </button>
 
-      {/* Point Core (apenas se existir) */}
-      {hasCore && (
-        <div
+        <button
+          type="button"
+          onClick={handleAddDelta}
+          disabled={deltas.length >= MAX_POINTS}
           style={{
-            position: "absolute",
-            left: corePoint.x - POINT_SIZE / 2,
-            top: corePoint.y - POINT_SIZE / 2,
-            cursor: "grab",
+            padding: "8px 12px",
+            fontSize: "13px",
+            fontWeight: 500,
+            borderRadius: "6px",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            cursor: deltas.length >= MAX_POINTS ? "not-allowed" : "pointer",
+            backgroundColor:
+              deltas.length >= MAX_POINTS ? "#9ca3af" : "#dc2626",
+            color: "#ffffff",
+            minWidth: "150px",
           }}
         >
-          <svg
-            width={POINT_SIZE}
-            height={POINT_SIZE}
-            viewBox="0 0 100 100"
-            xmlns="http://www.w3.org/2000/svg"
-            onMouseDown={handleMouseDown("pointCore")}
-          >
-            <circle
-              cx="50"
-              cy="50"
-              r="30"
-              fill="none"
-              stroke="#00f"
-              strokeWidth="8"
-            />
-            <circle cx="50" cy="50" r="10" fill="#00f" />
-          </svg>
-        </div>
-      )}
+          <i
+            className="pi pi-exclamation-triangle"
+            style={{ fontSize: "14px", color: "inherit" }}
+          />
+          <span>Adicionar delta</span>
+        </button>
 
-      {/* Point Delta (apenas se existir) */}
-      {hasDelta && (
-        <div
+        <button
+          type="button"
+          onClick={handleClearPoints}
           style={{
-            position: "absolute",
-            left: deltaPoint.x - POINT_SIZE / 2,
-            top: deltaPoint.y - POINT_SIZE / 2,
-            cursor: "grab",
+            padding: "8px 12px",
+            fontSize: "13px",
+            fontWeight: 500,
+            borderRadius: "6px",
+            border: "1px solid #9ca3af",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            cursor: "pointer",
+            backgroundColor: "#e5e7eb",
+            color: "#1f2937",
+            minWidth: "150px",
           }}
         >
-          <svg
-            width={POINT_SIZE}
-            height={POINT_SIZE}
-            viewBox="0 0 100 100"
-            xmlns="http://www.w3.org/2000/svg"
-            onMouseDown={handleMouseDown("pointDelta")}
-          >
-            <path
-              d="M 50 20 L 20 80 L 80 80 Z"
-              fill="#f00"
-              fillOpacity="0.15"
-              stroke="#f00"
-              strokeWidth="8"
-            />
-          </svg>
-        </div>
-      )}
+          <i
+            className="pi pi-eraser"
+            style={{ fontSize: "14px", color: "inherit" }}
+          />
+          <span>Limpar pontos</span>
+        </button>
+      </div>
     </div>
   );
 };

@@ -182,7 +182,7 @@ type UpdateFingerprintParams = {
   notes?: string;
   number_deltas: number | null;
   id?: number;
-  core: [Point] | [];
-  deltas: [Point] | [];
+  core: Point[] | [];
+  deltas: Point[] | [];
   numberOflines: number | null;
 };
