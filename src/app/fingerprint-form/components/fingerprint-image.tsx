@@ -8,6 +8,7 @@ import {
   SetStateAction,
   Dispatch,
   useEffect,
+  useCallback,
 } from "react";
 
 interface Point {
@@ -104,12 +105,12 @@ const FingerprintImage: FC<PropTypes> = ({
     setDragging(null);
   };
 
-  const handleClearPoints = () => {
+  const handleClearPoints = useCallback(() => {
     setDragging(null);
     setCores([]);
     setDeltas([]);
     onClearInputs();
-  };
+  }, [setCores, setDeltas, onClearInputs]);
 
   const handleAddCore = () => {
     setCores((prev) => {

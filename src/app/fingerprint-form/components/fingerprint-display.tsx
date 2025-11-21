@@ -306,41 +306,6 @@ const FingerprintDisplay = ({
                 height: "100%",
               }}
             />
-
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "rgba(0,0,0,0)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "12px",
-                transition: "background-color 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(0,0,0,0)";
-              }}
-            >
-              <i
-                className="pi pi-search-plus"
-                style={{
-                  fontSize: "24px",
-                  color: "white",
-                  opacity: 0,
-                  transition: "opacity 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = "1";
-                }}
-              />
-            </div>
           </div>
         )}
       </Card>
