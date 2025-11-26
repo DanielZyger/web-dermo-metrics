@@ -1,4 +1,4 @@
-import { PatternEnum } from "@/app/utils/constants";
+import { API_BASE_URL, PatternEnum } from "@/app/utils/constants";
 import Image from "next/image";
 import type React from "react";
 import {
@@ -31,6 +31,8 @@ interface PropTypes {
   onClearInputs: () => void;
   setNumberDeltas: Dispatch<SetStateAction<number | null>>;
   number_deltas: number | null;
+  fingerprintId: number | undefined;
+  onRidgesCalculated?: Dispatch<SetStateAction<number | null>>;
 }
 
 type DraggingState =
@@ -50,6 +52,8 @@ const FingerprintImage: FC<PropTypes> = ({
   hand,
   setNumberDeltas,
   onClearInputs,
+  fingerprintId,
+  onRidgesCalculated,
 }) => {
   const [dragging, setDragging] = useState<DraggingState>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -101,9 +105,9 @@ const FingerprintImage: FC<PropTypes> = ({
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setDragging(null);
-  };
+  }, []);
 
   const handleClearPoints = useCallback(() => {
     setDragging(null);
@@ -136,6 +140,61 @@ const FingerprintImage: FC<PropTypes> = ({
       handleClearPoints();
     }
   }, [fingerprintType, handleClearPoints]);
+
+  // ============================
+  // CHAMAR BACKEND /count-ridges
+  // quando usuário parar de mover (dragging === null)
+  // e tiver pelo menos 1 core e 1 delta
+  // ============================
+
+  const callRidgesApi = useCallback(async () => {
+    if (!hasCores || !hasDeltas) return;
+    if (!fingerprintId) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("fingerprint_id", String(fingerprintId));
+      formData.append("core", JSON.stringify(cores));
+      formData.append("deltas", JSON.stringify(deltas));
+
+      const response = await fetch(`${API_BASE_URL}/fingerprint/count-ridges`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fingerprint_id: fingerprintId,
+          cores: cores,
+          deltas: deltas,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Erro ao contar ridges:", await response.text());
+        return;
+      }
+
+      const data = await response.json();
+      if (onRidgesCalculated) {
+        onRidgesCalculated(data.total_count);
+      }
+    } catch (error) {
+      console.error("Erro ao chamar /count-ridges:", error);
+    }
+  }, [cores, deltas, hasCores, hasDeltas, fingerprintId, onRidgesCalculated]);
+
+  useEffect(() => {
+    console.log("dragging", dragging);
+    if (!dragging && !hasCores && !hasDeltas) return;
+
+    const timeoutId = window.setTimeout(() => {
+      void callRidgesApi();
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [dragging, hasCores, hasDeltas, cores, deltas, callRidgesApi]);
 
   return (
     <div
@@ -295,7 +354,7 @@ const FingerprintImage: FC<PropTypes> = ({
           display: "flex",
           flexDirection: "column",
           gap: "8px",
-          marginTop: "40px", // um pequeno alinhamento com o topo da imagem
+          marginTop: "40px",
         }}
       >
         <button

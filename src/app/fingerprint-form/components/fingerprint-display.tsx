@@ -354,6 +354,8 @@ const FingerprintDisplay = ({
                 onClearInputs={onClearInputs}
                 setNumberDeltas={setNumber_deltas}
                 number_deltas={number_deltas}
+                fingerprintId={correctFingerprint?.id}
+                onRidgesCalculated={setNumberOflines}
               />
             )}
           </div>
